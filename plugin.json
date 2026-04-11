@@ -1,0 +1,23 @@
+{
+  "slug": "Nebula",
+  "name": "Nebula",
+  "version": "2.0.0",
+  "license": "GPL-3.0-or-later",
+  "brand": "Emiel ",
+  "author": "Emiel",
+  "authorEmail": "",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "Nebula",
+      "name": "Nebula",
+      "description": "",
+      "tags": []
+    }
+  ]
+}
