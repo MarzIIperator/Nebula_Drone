@@ -148,7 +148,7 @@ Beim Abspielen läuft ein Phase-Akkumulator von 0 bis 1 durch die Tabelle. Die G
 - Nur `amplitude[1] = 1`, Rest 0 → reiner Sinus
 - `amplitude[h] = 1/h` für alle h → Sägezahn-ähnlich
 - `amplitude[h] = 1/h` nur für ungerade h → Rechteck-ähnlich
-- Zufällige Amplituden → einzigartige, organische Klangfarben (Random-Button)
+
 
 ### 3.2 Morphing zwischen Frames
 
@@ -239,103 +239,8 @@ Nebula/
 ## 6. Panel-Layout (Konzept)
 
 ```
-┌─────────────────────────────────────────┐
-│              N E B U L A                │
-│         drone texture synthesizer       │
-│                                         │
-│   ┌─ Bank A ──┐     ┌─ Bank B ──┐      │
-│   │ Pitch Fine│     │ Pitch Fine│      │
-│   │ Vol   Pan │     │ Vol   Pan │      │
-│   │ SubLv Sub8│     │ SubLv Sub8│      │
-│   │ Morph     │     │ Morph     │      │
-│   │ LFO R/D/S │     │ LFO R/D/S │      │
-│   └───────────┘     └───────────┘      │
-│                                         │
-│          ┌─ PM ──────────┐              │
-│          │ Amount  Dir   │              │
-│          └───────────────┘              │
-│                                         │
-│   ┌─ Filter ─┐  ┌ Reverb ┐  ┌Drift┐   │
-│   │ Cut Res  │  │ Sz Mix │  │ Amt │   │
-│   │ LP/HP    │  └────────┘  └─────┘   │
-│   └──────────┘              [Random]   │
-│                              Master    │
-│                                         │
-│  CV: MrA MrB PM  Cut Drf    Out: L R  │
-└─────────────────────────────────────────┘
+
 ```
-
----
-
-## 7. Implementierungsplan
-
-### Phase 1 — Grundstruktur (Woche 1–3, ~40h)
-
-- [ ] VCV Rack SDK Setup und leeres Modul kompiliert
-- [ ] `Wavetable.h`: Klasse mit 32 Frames, TABLE_SIZE = 256
-- [ ] `WavetableGenerator.h`: Frames per additiver Synthese vorberechnen
-- [ ] `Oscillator.h`: Phase-Akkumulator, Tabellen-Lookup mit Interpolation
-- [ ] 1 Oszillator mit Morph-Knob bringt Sound in VCV Rack
-- [ ] Auf 2 VCOs erweitern (1 Bank mit Haupt + Sub)
-- [ ] Git Repository aufsetzen, saubere Commits
-
-**Milestone:** Ein Oszillator spielt hörbar in VCV Rack, Morph funktioniert.
-
-### Phase 2 — 2-Bank-System (Woche 4–5, ~24h)
-
-- [ ] Auf 2 Bänke erweitern (4 VCOs total)
-- [ ] Pitch, Fine, Volume, Pan pro Bank
-- [ ] Sub-Level und Sub-Octave-Switch pro Bank
-- [ ] Jede Bank hat eigene Wavetable
-- [ ] Stereo-Panning (Constant Power)
-
-**Milestone:** Zwei unabhängige Drone-Bänke mit Stereo-Output.
-
-### Phase 3 — Phasenmodulation (Woche 6–7, ~20h)
-
-- [ ] `PhaseMod.h`: PM-Logik implementieren
-- [ ] PM-Amount Knob
-- [ ] PM-Direction Switch (A→B / B→A / A↔B)
-- [ ] Testen und Feintuning des PM-Bereichs
-
-**Milestone:** Bänke modulieren sich gegenseitig, PM-Amount steuert Klangkomplexität.
-
-### Phase 4 — Modulation (Woche 8–9, ~20h)
-
-- [ ] `LFO.h`: Sine, Triangle, Smooth Random
-- [ ] 1 LFO pro Bank, standardmäßig auf Pitch normalisiert
-- [ ] `Drift.h`: Smooth-Random pro VCO
-- [ ] Drift Amount Knob
-- [ ] Random-Button: Wavetables neu generieren per Knopfdruck
-
-**Milestone:** Klang bewegt sich organisch, Random-Button erzeugt neue Paletten.
-
-### Phase 5 — Effekte (Woche 10–11, ~20h)
-
-- [ ] `Filter.h`: Biquad-Filter mit LP/HP, Cutoff, Resonance
-- [ ] `Reverb.h`: FreeVerb oder Schroeder Reverb
-- [ ] Filter und Reverb in Signalkette integrieren
-
-**Milestone:** Filter-Sweeps und räumliche Tiefe hörbar.
-
-### Phase 6 — CV und Panel (Woche 12–13, ~16h)
-
-- [ ] CV-Inputs implementieren (Morph A/B, PM, Cutoff, Drift)
-- [ ] Panel-Design in Inkscape (SVG)
-- [ ] Knob-Positionen im Code abgleichen
-
-**Milestone:** Modul ist von außen steuerbar, Panel sieht professionell aus.
-
-### Phase 7 — Testing und Dokumentation (Woche 14–15, ~10h)
-
-- [ ] Ausgiebiges Testing in verschiedenen Patches
-- [ ] CPU-Performance messen und optimieren
-- [ ] Code-Dokumentation (Kommentare, README finalisieren)
-- [ ] Projektbericht schreiben (5–10 Seiten)
-- [ ] Distribution bauen (`make dist`)
-- [ ] Präsentation vorbereiten
-
-**Milestone:** Fertiges Plugin, Dokumentation, Abgabe.
 
 ---
 
