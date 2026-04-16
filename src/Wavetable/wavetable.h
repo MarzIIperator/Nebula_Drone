@@ -25,6 +25,46 @@ struct Wavetable
             }
         }
     }
+
+    void generate() {
+
+        // 1. Äußere Schleife: jeden Frame durchgehen
+        for (int f = 0; f < NUM_FRAMES; f++) {
+
+            // 2. Wie viele Obertöne hat dieser Frame?
+            int maxHarmonics = 1 + (f * 15) / (NUM_FRAMES - 1);
+
+            // 3. Mittlere Schleife: jedes Sample im Frame
+            for (int i = 0; i < TABLE_SIZE; i++) {
+
+                float value = 0.f;
+
+                // 4. Innere Schleife: jeden Oberton addieren
+                for (int h = 1; h <= maxHarmonics; h++) {
+
+                    // 5. Sinus berechnen und addieren
+                    value += std::sin(2.f * M_PI * h * i / TABLE_SIZE) / h;
+                }
+
+                frames[f][i] = value;
+            }
+
+            // 6. Normalisieren: maximalen Wert finden
+            float maxVal = 0.f;
+            for (int i = 0; i < TABLE_SIZE; i++) {
+                if (std::fabs(frames[f][i]) > maxVal) {
+                    maxVal = std::fabs(frames[f][i]);
+                }
+            }
+
+            // Durch den Maximalwert teilen
+            if (maxVal > 0.f) {
+                for (int i = 0; i < TABLE_SIZE; i++) {
+                    frames[f][i] /= maxVal;
+                }
+            }
+        }
+    }
 };
 
 
