@@ -5,36 +5,27 @@
 #ifndef NEBULA_WAVETABLE_H
 #define NEBULA_WAVETABLE_H
 #pragma once
-#include <JuceHeader.h>
+#include <cmath>
+#include <array>
 
-class AdditiveWavetable
+struct Wavetable
 {
+    static const int TABLE_SIZE = 256;
+    static const int NUM_FRAMES = 32;
 
-    public:
+    std::array<std::array<float, 256>, 32> frames;
 
-        AdditiveWavetable();
-        ~AdditiveWavetable();
+    // Konstruktor, alles auf 0 setzen
 
-        void prepareToPlay(float sampleRate);
-
-    private:
-
-        juce::AudioBuffer<float> wavetable;
-        double sampleRate = -1;
-        float phaseIncrement = 0.f;
-        float currentIndex = 0.f;
-        float currentSample = 0.f;
-        float gain = 0.5f;
-
-
+    Wavetable()
+    {
+        for (int f = 0; f < NUM_FRAMES; f++){
+            for(int i = 0; i < TABLE_SIZE; i++){
+                frames[f][i] = 0.f;
+            }
+        }
+    }
 };
-
-
-
-
-
-
-
 
 
 #endif //NEBULA_WAVETABLE_H
