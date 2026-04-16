@@ -10,7 +10,7 @@ enum WaveformTypes
 {
     Sinus,
     Dreieck,
-    Pulse,
+    Sägezahn,
     Noise
 };
 struct Oscillator
@@ -22,13 +22,14 @@ struct Oscillator
         if (phase >= 1.f) phase -= 1.f;
 
         switch (waveform) {
-        case SINE:
+
+        case Sinus:
             return std::sin(2.f * M_PI * phase);
-        case SAW:
+        case Sägezahn:
             return 2.f * phase - 1.f;
-        case SQUARE:
+        case Dreieck:
             return phase < 0.5f ? 1.f : -1.f;
-        case NOISE:
+        case Noise:
             return (float)rand() / RAND_MAX * 2.f - 1.f;
         default:
             return 0.f;
