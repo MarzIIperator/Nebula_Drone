@@ -4,7 +4,7 @@
 
 #include "wavetable.h"
 
-wavetable::wavetable()
+Wavetable::Wavetable()
 {
 
 };
