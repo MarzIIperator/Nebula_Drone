@@ -61,51 +61,53 @@ private:
         auto clamp01 = [](float x) {
             return (x < 0.f) ? 0.f : (x > 1.f ? 1.f : x);
         };
-        auto smooth = [&](float x) {
+        auto smoothstep01 = [&](float x) {
             x = clamp01(x);
-            return x * x * (3.f - 2.f * x); // smoothstep
+            return x * x * (3.f - 2.f * x);
         };
-        auto lerp = [](float a, float b, float t) {
-            return a + (b - a) * t;
+        auto lerp = [](float start, float end, float alpha) {
+            return start + (end - start) * alpha;
         };
 
-        for (int f = 0; f < Wavetable::NUM_FRAMES; ++f) {
-            float t = static_cast<float>(f) / static_cast<float>(Wavetable::NUM_FRAMES - 1);
+        for (int frameIndex = 0; frameIndex < Wavetable::NUM_FRAMES; ++frameIndex) {
+            float morphPos = static_cast<float>(frameIndex) / static_cast<float>(Wavetable::NUM_FRAMES - 1);
 
-            for (int i = 0; i < Wavetable::TABLE_SIZE; ++i) {
-                float p = 2.f * static_cast<float>(M_PI) * i / Wavetable::TABLE_SIZE;
-                float s = std::sin(p);
+            for (int sampleIndex = 0; sampleIndex < Wavetable::TABLE_SIZE; ++sampleIndex) {
+                float phaseRadians = 2.f * static_cast<float>(M_PI) * sampleIndex / Wavetable::TABLE_SIZE;
+                float sineFundamental = std::sin(phaseRadians);
 
                 // 5 different wave "keyframes"
-                float k0 = 0.90f * std::sin(p) + 0.22f * std::sin(2.f * p) + 0.10f * std::sin(3.f * p); // warm organ
+                // 0.90 keeps the fundamental dominant while 0.22/0.10 add gentle color (musical but not buzzy).
+                float k1Organ = 0.90f * std::sin(phaseRadians) + 0.22f * std::sin(2.f * phaseRadians) + 0.10f * std::sin(3.f * phaseRadians); // warm organ
 
-                float k1 = (2.f / static_cast<float>(M_PI)) * std::asin(std::sin(p));                    // triangle
+                float k2Triangle = (2.f / static_cast<float>(M_PI)) * std::asin(std::sin(phaseRadians));                    // triangle
 
-                float k2 = std::tanh(1.8f * std::sin(p) + 0.8f * std::sin(2.f * p) + 0.2f * std::sin(3.f * p)); // warm saw-ish
+                float k3SaturatedSaw = std::tanh(1.8f * std::sin(phaseRadians) + 0.8f * std::sin(2.f * phaseRadians) + 0.2f * std::sin(3.f * phaseRadians)); // warm saw-ish
 
-                float pwm = 0.60f - 0.35f * t; // moving pulse width
-                float k3 = std::tanh(7.f * (s - pwm));   // pulse
+                // Start duty near 60% (0.60) and narrow with morph to increase edge/brightness over the scan.
+                float pulseCenter = 0.60f - 0.35f * morphPos;
+                float k4Pulse = std::tanh(7.f * (sineFundamental - pulseCenter));   // pulse
 
-                float k4 = std::sin(p + (0.5f + 4.0f * t) * std::sin(2.01f * p));                        // warm FM
+                float k5Fm = std::sin(phaseRadians + (0.5f + 4.0f * morphPos) * std::sin(2.01f * phaseRadians));                        // warm FM
 
-                // Morph across keyframes: k0->k1->k2->k3->k4
-                float m = t * 4.f;
-                int seg = static_cast<int>(m);
-                if (seg > 3) seg = 3;
-                float u = smooth(m - static_cast<float>(seg));
+                // Morph across keyframes: organ -> triangle -> saturated saw -> pulse -> FM
+                float morphSegmentPos = morphPos * 4.f;
+                int segmentIndex = static_cast<int>(morphSegmentPos);
+                if (segmentIndex > 3) segmentIndex = 3;
+                float segmentAlpha = smoothstep01(morphSegmentPos - static_cast<float>(segmentIndex));
 
-                float a = 0.f, b = 0.f;
-                if (seg == 0) { a = k0; b = k1; }
-                else if (seg == 1) { a = k1; b = k2; }
-                else if (seg == 2) { a = k2; b = k3; }
-                else { a = k3; b = k4; }
+                float segmentStart = 0.f;
+                float segmentEnd = 0.f;
+                if (segmentIndex == 0) { segmentStart = k1Organ; segmentEnd = k2Triangle; }
+                else if (segmentIndex == 1) { segmentStart = k2Triangle; segmentEnd = k3SaturatedSaw; }
+                else if (segmentIndex == 2) { segmentStart = k3SaturatedSaw; segmentEnd = k4Pulse; }
+                else { segmentStart = k4Pulse; segmentEnd = k5Fm; }
 
-                float value = lerp(a, b, u);
+                float sampleValue = lerp(segmentStart, segmentEnd, segmentAlpha);
 
-                // final glue
-                value = std::tanh((1.1f + 0.8f * t) * value);
+                sampleValue = std::tanh((1.1f + 0.8f * morphPos) * sampleValue);
 
-                wt.frames[f][i] = value;
+                wt.frames[frameIndex][sampleIndex] = sampleValue;
             }
         }
 
