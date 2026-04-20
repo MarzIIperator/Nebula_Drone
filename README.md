@@ -23,37 +23,7 @@ Nebula ist ein Drone/Texture-Synthesizer-Modul für die Open-Source Modular-Synt
 ### 2.1 Signalfluss (Übersicht)
 
 ```
-Bank A                          Bank B
-┌─────────────────┐            ┌─────────────────┐
-│ VCO 1 (Haupt)   │            │ VCO 2 (Haupt)   │
-│ + Sub 1 (-1oct) │            │ + Sub 2 (-1oct) │
-│ Wavetable A     │            │ Wavetable B     │
-│ Morph A         │            │ Morph B         │
-│ LFO A           │            │ LFO B           │
-└────────┬────────┘            └────────┬────────┘
-         │                            │
-         ▼                            ▼
-      Mix A ──── PM Amount ────▶     Mix B
-         │       (A/B moduliert       │
-         │         Phase von B/A)     │
-         │                            │
-         └──────────┬─────────────────┘
-                    ▼
-             Stereo Mix (Pan)
-                    │
-                    ▼
-              Filter (global)
-              LP/HP, Cutoff, Reso
-                    │
-                    ▼
-              Reverb (global)
-              Size, Mix
-                    │
-                    ▼
-              Master Volume
-                    │
-                    ▼
-              Stereo Out (L/R)
+
 ```
 
 ### 2.2 Pro Bank (×2)
@@ -85,9 +55,6 @@ Jede Bank besteht aus:
 
 Die Phasenmodulation ist das zentrale klangformende Feature von Nebula. Der gemischte Output von Bank A moduliert die Phase der Oszillatoren in Bank B oder umgekehrt (Wechselbar durch einen Switch).
 
-```
-output_B = wavetable[phase_B + output_A * pmAmount]
-```
 
 **Parameter:**
 - **PM Amount** — Wie stark Bank A/B die Phase von Bank B/A beeinflusst (0 = kein Effekt, voll = chaotisch)
