@@ -1,7 +1,6 @@
 #include "plugin.hpp"
 #include "dsp/wavetable.h"
 #include "dsp/wavetableOSC.h"
-#include "dsp/wavetablePresets.h"
 
 struct Nebula : Module {
     enum ParamId {
@@ -28,11 +27,11 @@ struct Nebula : Module {
 
     Nebula() {
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-        configParam(PITCH_PARAM, 20.f, 500.f, 110.f, "Pitch", " Hz");
+        configParam(PITCH_PARAM, 20.f, 2000.f, 110.f, "Pitch", " Hz");
         configParam(MORPH_PARAM, 0.f, 1.f, 0.f, "Morph");
         configOutput(AUDIO_OUTPUT, "Audio");
 
-        WavetablePresets::generate(wavetable, WavetablePresetId::Basic);
+        wavetable.generateBasic(0);  //
     }
 
     void process(const ProcessArgs& args) override {
