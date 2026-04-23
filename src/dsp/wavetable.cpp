@@ -1,8 +1,9 @@
 #include "wavetable.h"
 #include <cmath>
 #include <algorithm>
+#include <iostream>
+#include "../Utils/AudioFile.h"
 
-// Hilfsfunktion
 static float clamp(float val, float lo, float hi) {
     if (val < lo) return lo;
     if (val > hi) return hi;
@@ -17,6 +18,9 @@ void Wavetable::clear() {
     for (auto& frame : frames) {
         frame.fill(0.f);
     }
+    for (auto& frame : framesWav) {
+        frame.fill(0.f);
+    }
 }
 
 void Wavetable::generateBasic(int preset) {
@@ -27,20 +31,11 @@ void Wavetable::generateBasic(int preset) {
         case 1:
             generate2();
             break;
-        case 2:
-            generate3();
-            break;
-        case 3:
-            generate4();
-            break;
         default:
             generate1();
     }
-
     normalizeAndWrap();
 }
-
-// KEIN "private:" hier! Einfach direkt die Funktionen:
 
 void Wavetable::generate1() {
     auto clamp01 = [](float x) {
@@ -82,62 +77,25 @@ void Wavetable::generate1() {
             float sampleValue = lerp(segmentStart, segmentEnd, segmentAlpha);
             sampleValue = std::tanh((1.1f + 0.8f * morphPos) * sampleValue);
 
-            frames[frameIndex][sampleIndex] = sampleValue;
+            frames[frameIndex][sampleIndex] = sampleValue;  // ← In frames (Additive)
         }
     }
-    // KEIN normalizeAndWrap() hier - wird oben in generateBasic() gemacht
 }
 
 void Wavetable::generate2() {
-    // Platzhalter: Sägezahn-Familie
-    for (int f = 0; f < NUM_FRAMES; f++) {
-        int maxHarmonics = 1 + (f * 15) / (NUM_FRAMES - 1);
+    for (int f = 0; f < NUM_FRAMES; ++f) {
+        float morphPos = f / 255.f;
+        int numHarmonics = 4 + (int)(morphPos * 12);
 
-        for (int i = 0; i < TABLE_SIZE; i++) {
+        for (int i = 0; i < TABLE_SIZE; ++i) {
             float phase = 2.f * M_PI * i / TABLE_SIZE;
-            float value = 0.f;
+            float saw = 0.f;
 
-            for (int h = 1; h <= maxHarmonics; h++) {
-                value += std::sin(phase * h) / h;
+            for (int h = 1; h <= numHarmonics; h++) {
+                saw += std::sin(h * phase) / h;
             }
 
-            frames[f][i] = value;
-        }
-    }
-}
-
-void Wavetable::generate3() {
-    // Platzhalter: Square-Familie (nur ungerade Obertöne)
-    for (int f = 0; f < NUM_FRAMES; f++) {
-        int maxHarmonics = 1 + (f * 15) / (NUM_FRAMES - 1);
-
-        for (int i = 0; i < TABLE_SIZE; i++) {
-            float phase = 2.f * M_PI * i / TABLE_SIZE;
-            float value = 0.f;
-
-            for (int h = 1; h <= maxHarmonics; h += 2) {  // nur ungerade
-                value += std::sin(phase * h) / h;
-            }
-
-            frames[f][i] = value;
-        }
-    }
-}
-
-void Wavetable::generate4() {
-    // Platzhalter: Warm (1/h²)
-    for (int f = 0; f < NUM_FRAMES; f++) {
-        int maxHarmonics = 1 + (f * 15) / (NUM_FRAMES - 1);
-
-        for (int i = 0; i < TABLE_SIZE; i++) {
-            float phase = 2.f * M_PI * i / TABLE_SIZE;
-            float value = 0.f;
-
-            for (int h = 1; h <= maxHarmonics; h++) {
-                value += std::sin(phase * h) / (h * h);
-            }
-
-            frames[f][i] = value;
+            frames[f][i] = saw;
         }
     }
 }
@@ -145,6 +103,8 @@ void Wavetable::generate4() {
 float Wavetable::getSample(float phase, float morph) const {
     morph = clamp(morph, 0.f, 1.f);
     phase -= std::floor(phase);
+
+    const auto& activeFrames = (currentMode == 0) ? frames : framesWav;
 
     float framePos = morph * (NUM_FRAMES - 1);
     int frameA = static_cast<int>(framePos);
@@ -155,10 +115,10 @@ float Wavetable::getSample(float phase, float morph) const {
     int idx = static_cast<int>(tablePos);
     float frac = tablePos - idx;
 
-    float a0 = frames[frameA][idx];
-    float a1 = frames[frameA][idx + 1];
-    float b0 = frames[frameB][idx];
-    float b1 = frames[frameB][idx + 1];
+    float a0 = activeFrames[frameA][idx];
+    float a1 = activeFrames[frameA][idx + 1];
+    float b0 = activeFrames[frameB][idx];
+    float b1 = activeFrames[frameB][idx + 1];
 
     float sampleA = a0 + (a1 - a0) * frac;
     float sampleB = b0 + (b1 - b0) * frac;
@@ -186,13 +146,53 @@ void Wavetable::normalizeAndWrap() {
 }
 
 void Wavetable::loadFromWav(const char* path) {
-    //
+    std::cout << "=== NEBULA: loadFromWav ===" << std::endl;
+
+    AudioFile<float> audioFile;
+
+    if (!audioFile.load(path)) {
+        std::cout << "ERROR: Failed to load!" << std::endl;
+        return;
+    }
+
+    if (!audioFile.isMono()) {
+        std::cout << "ERROR: Not mono!" << std::endl;
+        return;
+    }
+
+    int totalSamples = audioFile.getNumSamplesPerChannel();
+
+    if (totalSamples % TABLE_SIZE != 0) {
+        std::cout << "ERROR: Samples not divisible by " << TABLE_SIZE << std::endl;
+        return;
+    }
+
+    int sourceFrames = totalSamples / TABLE_SIZE;
+    std::cout << "Source frames: " << sourceFrames << ", Target frames: " << NUM_FRAMES << std::endl;
+
+    // Resampling: in framesWav schreiben
+    for (int targetFrame = 0; targetFrame < NUM_FRAMES; targetFrame++) {
+        float sourcePos = (float)targetFrame / (NUM_FRAMES - 1) * (sourceFrames - 1);
+        int sourceFrameA = (int)sourcePos;
+        int sourceFrameB = std::min(sourceFrameA + 1, sourceFrames - 1);
+        float frac = sourcePos - sourceFrameA;
+
+        for (int i = 0; i < TABLE_SIZE; i++) {
+            int idxA = sourceFrameA * TABLE_SIZE + i;
+            int idxB = sourceFrameB * TABLE_SIZE + i;
+
+            float sampleA = audioFile.samples[0][idxA];
+            float sampleB = audioFile.samples[0][idxB];
+
+            framesWav[targetFrame][i] = sampleA + (sampleB - sampleA) * frac;  // ← In framesWav!
+        }
+
+        framesWav[targetFrame][TABLE_SIZE] = framesWav[targetFrame][0];
+    }
+
+    std::cout << "SUCCESS: Resampled " << sourceFrames << " → " << NUM_FRAMES << " frames" << std::endl;
 }
 
-void Wavetable::generateMipsFromFullBandwidth() {
-    //
-}
+void Wavetable::generateMipsFromFullBandwidth() {}
 
-int Wavetable::calculateMipLevel(float freq) {
-    return 0;
-}
+int Wavetable::calculateMipLevel(float freq) { return 0; }
