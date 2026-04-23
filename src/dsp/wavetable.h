@@ -2,44 +2,33 @@
 #define NEBULA_WAVETABLE_HPP
 
 #include <array>
-#include <algorithm>
-#include <cmath>
 
-struct Wavetable {
+struct Wavetable
+{
     static constexpr int TABLE_SIZE = 2048;
-    static constexpr int NUM_FRAMES = 64;
+    static constexpr int NUM_FRAMES = 256;
 
-    std::array<std::array<float, TABLE_SIZE + 1>, NUM_FRAMES> frames{};
+    std::array<std::array<float, TABLE_SIZE + 1>, NUM_FRAMES> frames{};     // Additive
+    std::array<std::array<float, TABLE_SIZE + 1>, NUM_FRAMES> framesWav{};  // WAV
 
-    void clear() {
-        for (auto& frame : frames) {
-            frame.fill(0.f);
-        }
-    }
+    int currentMode = 0;   // 0 = Additive, 1 = WAV
 
-    float getSample(float phase, float morph) const {
-        morph = clamp(morph, 0.f, 1.f);
-        phase -= std::floor(phase);
+    Wavetable();
 
-        float framePos = morph * (NUM_FRAMES - 1);
-        int frameA = static_cast<int>(framePos);
-        int frameB = std::min(frameA + 1, NUM_FRAMES - 1);
-        float frameFrac = framePos - frameA;
+    void clear();
+    void loadFromWav(const char* path);
 
-        float tablePos = phase * TABLE_SIZE;
-        int idx = static_cast<int>(tablePos);
-        float frac = tablePos - idx;
+    void generateBasic(int preset);
 
-        float a0 = frames[frameA][idx];
-        float a1 = frames[frameA][idx + 1];
-        float b0 = frames[frameB][idx];
-        float b1 = frames[frameB][idx + 1];
+    float getSample(float phase, float morph) const;
 
-        float sampleA = a0 + (a1 - a0) * frac;
-        float sampleB = b0 + (b1 - b0) * frac;
+private:
+    void normalizeAndWrap();
+    void generateMipsFromFullBandwidth();
+    int calculateMipLevel(float freq);
 
-        return sampleA + (sampleB - sampleA) * frameFrac;
-    }
+    void generate1();
+    void generate2();
 };
 
 #endif

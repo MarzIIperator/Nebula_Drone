@@ -1,4 +1,104 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="90" height="380">
-  <rect width="90" height="380" fill="#1a1a2e"/>
-  <text x="45" y="30" text-anchor="middle" fill="#e0e0ff" font-size="14" font-family="sans-serif">NEBULA</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="127mm" height="128.5mm" viewBox="0 0 127 128.5"
+     xmlns="http://www.w3.org/2000/svg">
+
+  <!-- ========== HINTERGRUND ========== -->
+  <rect width="127" height="128.5" fill="#e6e6dd"/>
+
+  <!-- ========== MOUNTING HOLES ========== -->
+  <circle cx="7.62" cy="3" r="1.5" fill="#2a2a3e"/>
+  <circle cx="119.38" cy="3" r="1.5" fill="#2a2a3e"/>
+  <circle cx="7.62" cy="125.5" r="1.5" fill="#2a2a3e"/>
+  <circle cx="119.38" cy="125.5" r="1.5" fill="#2a2a3e"/>
+
+  <!-- ========== HEADER ========== -->
+  <text x="63.5" y="10" font-family="Arial, sans-serif" font-size="7"
+        font-weight="bold" fill="#4a9eff" text-anchor="middle">NEBULA</text>
+  <line x1="15" y1="14" x2="112" y2="14" stroke="#2a2a3e" stroke-width="0.5"/>
+
+  <!-- ========== BANK LABELS ========== -->
+  <text x="31.75" y="21" font-family="Arial, sans-serif" font-size="4"
+        font-weight="bold" fill="#ff6b6b" text-anchor="middle">BANK A</text>
+  <text x="95.25" y="21" font-family="Arial, sans-serif" font-size="4"
+        font-weight="bold" fill="#4ecdc4" text-anchor="middle">BANK B</text>
+
+  <!-- ========== CENTER DIVIDER ========== -->
+  <line x1="63.5" y1="17" x2="63.5" y2="112" stroke="#2a2a3e" stroke-width="1"/>
+
+  <!-- ========== BANK A ========== -->
+
+  <!-- Pitch Knob (Large) -->
+  <circle cx="31.75" cy="35" r="9" fill="none" stroke="#ff6b6b" stroke-width="0.4" stroke-dasharray="1,1"/>
+  <text x="31.75" y="27" font-family="Arial, sans-serif" font-size="3"
+        fill="#888888" text-anchor="middle">PITCH</text>
+
+  <!-- Morph Knob -->
+  <circle cx="31.75" cy="53" r="4.5" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="31.75" y="47" font-family="Arial, sans-serif" font-size="2.5"
+        fill="#888888" text-anchor="middle">MORPH</text>
+
+  <!-- Volume Knob -->
+  <circle cx="31.75" cy="70" r="4.5" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="31.75" y="64" font-family="Arial, sans-serif" font-size="2.5"
+        fill="#888888" text-anchor="middle">VOLUME</text>
+
+  <!-- Sub Knob -->
+  <circle cx="31.75" cy="87" r="4.5" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="31.75" y="81" font-family="Arial, sans-serif" font-size="2.5"
+        fill="#888888" text-anchor="middle">SUB</text>
+
+  <!-- Mode Switch -->
+  <rect x="28.75" y="96" width="6" height="12" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="23" y="103" font-family="Arial, sans-serif" font-size="2"
+        fill="#4ade80" text-anchor="middle">GEN</text>
+  <text x="40.5" y="103" font-family="Arial, sans-serif" font-size="2"
+        fill="#f87171" text-anchor="middle">WAV</text>
+
+  <!-- LEDs -->
+  <circle cx="26" cy="102" r="1.5" fill="none" stroke="#4ade80" stroke-width="0.2"/>
+  <circle cx="37.5" cy="102" r="1.5" fill="none" stroke="#f87171" stroke-width="0.2"/>
+
+  <!-- Output Jack -->
+  <circle cx="31.75" cy="118" r="4" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="31.75" y="112" font-family="Arial, sans-serif" font-size="2.5"
+        fill="#888888" text-anchor="middle">L OUT</text>
+
+  <!-- ========== BANK B ========== -->
+
+  <!-- Pitch Knob (Large) -->
+  <circle cx="95.25" cy="35" r="9" fill="none" stroke="#4ecdc4" stroke-width="0.4" stroke-dasharray="1,1"/>
+  <text x="95.25" y="27" font-family="Arial, sans-serif" font-size="3"
+        fill="#888888" text-anchor="middle">PITCH</text>
+
+  <!-- Morph Knob -->
+  <circle cx="95.25" cy="53" r="4.5" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="95.25" y="47" font-family="Arial, sans-serif" font-size="2.5"
+        fill="#888888" text-anchor="middle">MORPH</text>
+
+  <!-- Volume Knob -->
+  <circle cx="95.25" cy="70" r="4.5" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="95.25" y="64" font-family="Arial, sans-serif" font-size="2.5"
+        fill="#888888" text-anchor="middle">VOLUME</text>
+
+  <!-- Sub Knob -->
+  <circle cx="95.25" cy="87" r="4.5" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="95.25" y="81" font-family="Arial, sans-serif" font-size="2.5"
+        fill="#888888" text-anchor="middle">SUB</text>
+
+  <!-- Mode Switch -->
+  <rect x="92.25" y="96" width="6" height="12" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="86.5" y="103" font-family="Arial, sans-serif" font-size="2"
+        fill="#4ade80" text-anchor="middle">GEN</text>
+  <text x="104" y="103" font-family="Arial, sans-serif" font-size="2"
+        fill="#f87171" text-anchor="middle">WAV</text>
+
+  <!-- LEDs -->
+  <circle cx="89.5" cy="102" r="1.5" fill="none" stroke="#4ade80" stroke-width="0.2"/>
+  <circle cx="101" cy="102" r="1.5" fill="none" stroke="#f87171" stroke-width="0.2"/>
+
+  <!-- Output Jack -->
+  <circle cx="95.25" cy="118" r="4" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="1,1"/>
+  <text x="95.25" y="112" font-family="Arial, sans-serif" font-size="2.5"
+        fill="#888888" text-anchor="middle">R OUT</text>
+
 </svg>
