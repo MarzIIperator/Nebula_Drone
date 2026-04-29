@@ -3,13 +3,19 @@
 #include "dsp/wavetableOSC.h"
 #include <osdialog.h>
 #include <iostream>
+#include "dsp/LFO.h"
+#include "dsp/LadderFilter.h"
+
 
 struct Nebula : Module {
     enum ParamId {
         PITCH_A_PARAM, FINE_A_PARAM, MORPH_A_PARAM, VOLUME_A_PARAM,
         PAN_A_PARAM, SUB_LEVEL_A_PARAM, SUB_OCTAVE_A_PARAM, PRESET_A_PARAM,
+        CUTOFF_A_B_PARAM, RES_A_B_PARAM, FILTER_MODE_A_B_PARAM,
         PITCH_B_PARAM, FINE_B_PARAM, MORPH_B_PARAM, VOLUME_B_PARAM,
         PAN_B_PARAM, SUB_LEVEL_B_PARAM, SUB_OCTAVE_B_PARAM, PRESET_B_PARAM,
+        LFO_RATE_A_PARAM, LFO_DEPTH_A_PARAM, LFO_SHAPE_A_PARAM,
+        LFO_RATE_B_PARAM, LFO_DEPTH_B_PARAM, LFO_SHAPE_B_PARAM,
         PARAMS_LEN
     };
     enum InputId { INPUTS_LEN };
@@ -18,6 +24,10 @@ struct Nebula : Module {
 
     Wavetable wavetableA, wavetableB;
     WavetableOsc mainOscA, subOscA, mainOscB, subOscB;
+    LFO lfoA, lfoB;
+
+    // BiquadFilter von der VCV Rack SDK
+    LadderFilter filterA, filterB;
 
     float morphASmoothed = 0.f, morphBSmoothed = 0.f;
     float freqASmoothed = 110.f, freqBSmoothed = 110.f;
@@ -31,21 +41,34 @@ struct Nebula : Module {
         configParam(PITCH_A_PARAM, -3.f, 3.f, 0.f, "Pitch A", " Oct");
         configParam(MORPH_A_PARAM, 0.f, 1.f, 0.f, "Morph A");
         configParam(VOLUME_A_PARAM, 0.f, 1.f, 0.8f, "Volume A");
-        configParam(SUB_LEVEL_A_PARAM, 0.f, 1.f, 0.f, "Sub Level A");
         configParam(SUB_OCTAVE_A_PARAM, 0.f, 1.f, 0.f, "Sub Octave A");
         configParam(PRESET_A_PARAM, 0.f, 1.f, 0.f, "Preset A");
         configParam(FINE_A_PARAM, -100.f, 100.f, 0.f, "Fine A");
+        configParam(PAN_A_PARAM, -1.f, 1.f, 0.f, "Pan A", " %");
+        configParam(LFO_RATE_A_PARAM, 0.01f, 10.f, 1.f, "LFO Rate A", " Hz");
+        configParam(LFO_DEPTH_A_PARAM, 0.f, 1.f, 0.f, "LFO Depth A", " %");
+        configSwitch(LFO_SHAPE_A_PARAM, 0.f, 2.f, 0.f, "LFO Shape A", {"Sine", "Triangle", "Random"});
 
         configParam(PITCH_B_PARAM, -3.f, 3.f, 0.f, "Pitch B", " Oct");
         configParam(MORPH_B_PARAM, 0.f, 1.f, 0.f, "Morph B");
         configParam(VOLUME_B_PARAM, 0.f, 1.f, 0.8f, "Volume B");
-        configParam(SUB_LEVEL_B_PARAM, 0.f, 1.f, 0.f, "Sub Level B");
         configParam(SUB_OCTAVE_B_PARAM, 0.f, 1.f, 0.f, "Sub Octave B");
         configParam(PRESET_B_PARAM, 0.f, 1.f, 0.f, "Preset B");
         configParam(FINE_B_PARAM, -100.f, 100.f, 0.f, "Fine B");
+        configParam(PAN_B_PARAM, -1.f, 1.f, 0.f, "Pan B", " %");
+        configParam(LFO_RATE_B_PARAM, 0.01f, 10.f, 1.f, "LFO Rate A", " Hz");
+        configParam(LFO_DEPTH_B_PARAM, 0.f, 1.f, 0.f, "LFO Depth A", " %");
+        configSwitch(LFO_SHAPE_B_PARAM, 0.f, 2.f, 0.f, "LFO Shape A", {"Sine", "Triangle", "Random"});
+
+
+       // Globaler Filter
+        configParam(CUTOFF_A_B_PARAM, 3.f, 9.9f, 9.9f, "Cutoff", " Hz", M_E);
+        configParam(RES_A_B_PARAM, 0.f, 1.f, 0.707f, "Resonance A");
+
 
         configOutput(AUDIO_LEFT_OUTPUT, "Left");
         configOutput(AUDIO_RIGHT_OUTPUT, "Right");
+
 
         std::cout << "=== NEBULA: Init ===" << std::endl;
         wavetableA.generateBasic(0);
@@ -55,6 +78,7 @@ struct Nebula : Module {
     }
 
     void process(const ProcessArgs& args) override {
+
         // ========== BANK A ==========
         int presetA = (int)params[PRESET_A_PARAM].getValue();
 
@@ -81,11 +105,23 @@ struct Nebula : Module {
         float pitchA = 110.f * std::pow(2.f, octaveA);
         float morphATarget = params[MORPH_A_PARAM].getValue();
 
+        //LFO
+        lfoA.setRate(params[LFO_RATE_A_PARAM].getValue());
+        lfoA.setShape( (LFO::Shape)(int)params[LFO_SHAPE_A_PARAM].getValue() );
+        float lfoOutA = lfoA.process(args.sampleTime);
+
+        float depthA = params[LFO_DEPTH_A_PARAM].getValue();
+        morphATarget = params[MORPH_A_PARAM].getValue() + lfoOutA * depthA;
+        morphATarget = clamp(morphATarget, 0.f, 1.f);
+
+
         float alpha = 1.f - std::exp(-args.sampleTime / 0.005f);
+
         morphASmoothed += (morphATarget - morphASmoothed) * alpha;
         freqASmoothed += (pitchA - freqASmoothed) * alpha;
 
         float sampleA = mainOscA.process(freqASmoothed, args.sampleTime, wavetableA, morphASmoothed);
+
 
         // ===== Sub OSC ======
 
@@ -159,8 +195,47 @@ struct Nebula : Module {
         float volumeB = params[VOLUME_B_PARAM].getValue();
         sampleB *= volumeB;
 
-        outputs[AUDIO_LEFT_OUTPUT].setVoltage(sampleA * 5.f);
-        outputs[AUDIO_RIGHT_OUTPUT].setVoltage(sampleB * 5.f);
+        // ========== LADDER FILTER ==========
+        // Param-Werte holen
+        float cutoffParam = params[CUTOFF_A_B_PARAM].getValue();
+        float resParam    = params[RES_A_B_PARAM].getValue();
+        float cutoffHz    = std::exp(cutoffParam);
+
+
+        // An beide Filter geben (Setter rufen intern update() auf)
+        filterA.setSampleRate(args.sampleRate);
+        filterA.setCutoff(cutoffHz);
+        filterA.setResonanz(resParam);
+
+        filterB.setSampleRate(args.sampleRate);
+        filterB.setCutoff(cutoffHz);
+        filterB.setResonanz(resParam);
+
+        // Filter pro Bank anwenden (mono, vor dem Pannen)
+        float filteredA = filterA.processLp(sampleA);
+        float filteredB = filterB.processLp(sampleB);
+
+        // ========== PANNING ==========
+
+        // Equal-Power Panning Bank A
+       // float panA = clamp(params[PAN_A_PARAM].getValue(), -1.f, 1.f);
+       // float angleA = (panA + 1.f) * (float)M_PI_4;   // -1..+1  ->  0..π/2
+       // float gainAL = std::cos(angleA);
+       // float gainAR = std::sin(angleA);
+
+        // Equal-Power Panning Bank B
+       // float panB = clamp(params[PAN_B_PARAM].getValue(), -1.f, 1.f);
+       // float angleB = (panB + 1.f) * (float)M_PI_4;
+       // float gainBL = std::cos(angleB);
+      //  float gainBR = std::sin(angleB);
+
+        // Stereo-Summe (gefilterte Signale!)
+        float left  = filteredA  ;
+        float right = filteredB ;
+
+        // 5. Main Stereo Out
+        outputs[AUDIO_LEFT_OUTPUT].setVoltage(left * 5.f);
+        outputs[AUDIO_RIGHT_OUTPUT].setVoltage(right * 5.f);
     }
 };
 
@@ -169,41 +244,64 @@ struct NebulaWidget : ModuleWidget {
     setModule(module);
     setPanel(createPanel(asset::plugin(pluginInstance, "res/Nebula.svg")));
 
-    // KORREKTE Umrechnung: viewBox → Pixel
-    // 25 HP = 375px, viewBox = 127 → Faktor = 2.953
+    // ========== BANK A ==========
+    // Pitch + Fine
+    addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(22.f, 34.f)),    module, Nebula::PITCH_A_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(35.f, 36.f)),    module, Nebula::FINE_A_PARAM));
 
-    float bankAX = 94;    // 31.75mm im SVG
-    float bankBX = 281;   // 95.25mm im SVG
+    // Wavetable
+    addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(22.f, 55.f)),         module, Nebula::MORPH_A_PARAM));
+    addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(22.f, 71.f)),         module, Nebula::VOLUME_A_PARAM));
 
-    float pitchY = 103;   // 35mm
-    float morphY = 157;   // 53mm
-    float volumeY = 207;  // 70mm
-    float subY = 257;     // 87mm
-    float switchY = 301;  // 102mm
-    float outputY = 348;  // 118mm
+    // Sub Octave
+    addParam(createParamCentered<CKSS>(mm2px(Vec(22.f, 84.5f)),                  module, Nebula::SUB_OCTAVE_A_PARAM));
 
-    // BANK A
-    addParam(createParamCentered<RoundLargeBlackKnob>(Vec(bankAX, pitchY), module, Nebula::PITCH_A_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(Vec(45, 110), module, Nebula::FINE_A_PARAM));
-    addParam(createParamCentered<RoundBlackKnob>(Vec(bankAX, morphY), module, Nebula::MORPH_A_PARAM));
-    addParam(createParamCentered<RoundBlackKnob>(Vec(bankAX, volumeY), module, Nebula::VOLUME_A_PARAM));
-    addParam(createParamCentered<RoundBlackKnob>(Vec(bankAX, subY), module, Nebula::SUB_LEVEL_A_PARAM));
-    addParam(createParamCentered<CKSS>(Vec(bankAX, switchY), module, Nebula::PRESET_A_PARAM));
-    addChild(createLightCentered<MediumLight<GreenLight>>(Vec(bankAX - 17, switchY), module, Nebula::ADDITIVE_A_LIGHT));
-    addChild(createLightCentered<MediumLight<RedLight>>(Vec(bankAX + 17, switchY), module, Nebula::WAV_A_LIGHT));
-    addOutput(createOutputCentered<PJ301MPort>(Vec(bankAX, outputY), module, Nebula::AUDIO_LEFT_OUTPUT));
+    // LFO
+    addParam(createParamCentered<Trimpot>(mm2px(Vec(13.f, 103.5f)),              module, Nebula::LFO_RATE_A_PARAM));
+    addParam(createParamCentered<Trimpot>(mm2px(Vec(22.f, 103.5f)),              module, Nebula::LFO_DEPTH_A_PARAM));
+    addParam(createParamCentered<CKSSThree>(mm2px(Vec(31.f, 103.75f)),           module, Nebula::LFO_SHAPE_A_PARAM));
 
-    // BANK B
-    addParam(createParamCentered<RoundLargeBlackKnob>(Vec(bankBX, pitchY), module, Nebula::PITCH_B_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(Vec(335, 110), module, Nebula::FINE_B_PARAM));
-    addParam(createParamCentered<RoundBlackKnob>(Vec(bankBX, morphY), module, Nebula::MORPH_B_PARAM));
-    addParam(createParamCentered<RoundBlackKnob>(Vec(bankBX, volumeY), module, Nebula::VOLUME_B_PARAM));
-    addParam(createParamCentered<RoundBlackKnob>(Vec(bankBX, subY), module, Nebula::SUB_LEVEL_B_PARAM));
-    addParam(createParamCentered<CKSS>(Vec(bankBX, switchY), module, Nebula::PRESET_B_PARAM));
-    addChild(createLightCentered<MediumLight<GreenLight>>(Vec(bankBX - 17, switchY), module, Nebula::ADDITIVE_B_LIGHT));
-    addChild(createLightCentered<MediumLight<RedLight>>(Vec(bankBX + 17, switchY), module, Nebula::WAV_B_LIGHT));
-    addOutput(createOutputCentered<PJ301MPort>(Vec(bankBX, outputY), module, Nebula::AUDIO_RIGHT_OUTPUT));
+    // Mode Switch + LEDs
+    addParam(createParamCentered<CKSS>(mm2px(Vec(22.f, 114.5f)),                 module, Nebula::PRESET_A_PARAM));
+    addChild(createLightCentered<SmallLight<GreenLight>>(mm2px(Vec(15.f, 114.f)), module, Nebula::ADDITIVE_A_LIGHT));
+    addChild(createLightCentered<SmallLight<RedLight>>(mm2px(Vec(29.f, 114.f)),   module, Nebula::WAV_A_LIGHT));
+
+    // Output L
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(22.f, 120.5f)),         module, Nebula::AUDIO_LEFT_OUTPUT));
+
+
+    // ========== GLOBAL (Center) ==========
+    // Filter
+    addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(63.5f, 38.f)),   module, Nebula::CUTOFF_A_B_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(55.f, 54.f)),    module, Nebula::RES_A_B_PARAM));
+
+
+    // ========== BANK B ==========
+    // Fine + Pitch (Fine LINKS, Pitch zentriert — gespiegelt zu Bank A)
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(92.f, 36.f)),    module, Nebula::FINE_B_PARAM));
+    addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(105.f, 34.f)),   module, Nebula::PITCH_B_PARAM));
+
+    // Wavetable
+    addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(105.f, 55.f)),        module, Nebula::MORPH_B_PARAM));
+    addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(105.f, 71.f)),        module, Nebula::VOLUME_B_PARAM));
+
+    // Pan / Octave / Sub  (gespiegelt: Pan links, Sub rechts)
+    addParam(createParamCentered<CKSS>(mm2px(Vec(105.f, 84.5f)),                 module, Nebula::SUB_OCTAVE_B_PARAM));
+
+    // LFO (gespiegelt: Shape links, Rate rechts)
+    addParam(createParamCentered<CKSSThree>(mm2px(Vec(96.f, 103.75f)),           module, Nebula::LFO_SHAPE_B_PARAM));
+    addParam(createParamCentered<Trimpot>(mm2px(Vec(105.f, 103.5f)),             module, Nebula::LFO_DEPTH_B_PARAM));
+    addParam(createParamCentered<Trimpot>(mm2px(Vec(114.f, 103.5f)),             module, Nebula::LFO_RATE_B_PARAM));
+
+    // Mode Switch + LEDs
+    addParam(createParamCentered<CKSS>(mm2px(Vec(105.f, 114.5f)),                module, Nebula::PRESET_B_PARAM));
+    addChild(createLightCentered<SmallLight<GreenLight>>(mm2px(Vec(98.f, 114.f)), module, Nebula::ADDITIVE_B_LIGHT));
+    addChild(createLightCentered<SmallLight<RedLight>>(mm2px(Vec(112.f, 114.f)),  module, Nebula::WAV_B_LIGHT));
+
+    // Output R
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(105.f, 120.5f)),        module, Nebula::AUDIO_RIGHT_OUTPUT));
 }
+    //Dry - Wet Slider Global
 
     void appendContextMenu(Menu* menu) override {
         Nebula* module = dynamic_cast<Nebula*>(this->module);
