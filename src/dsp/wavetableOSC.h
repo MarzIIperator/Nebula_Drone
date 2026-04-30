@@ -19,9 +19,13 @@ struct WavetableOsc {
         phase -= std::floor(phase);
     }
 
-    float process(float freq, float sampleTime, const Wavetable& wavetable, float morph) {
+    float process(float freq, float sampleTime, const Wavetable& wavetable, float morph, float phaseOffset) {
         advance(freq, sampleTime);
-        return wavetable.getSample(phase, morph);
+
+        float lookupPhase = phase + phaseOffset;
+        lookupPhase -= std::floor(lookupPhase);
+
+        return wavetable.getSample(lookupPhase, morph);
     }
 };
 
