@@ -62,17 +62,6 @@
 
   <line x1="8" y1="91" x2="36" y2="91" stroke="#cfc7b2" stroke-width="0.2"/>
 
-  <!-- ===== BANK A: LFO ===== -->
-  <text x="22" y="95" font-size="1.8" fill="#888" text-anchor="middle" letter-spacing="1">LFO</text>
-
-  <text x="13" y="100" font-size="1.4" fill="#666" text-anchor="middle">RATE</text>
-  <circle cx="13" cy="103.5" r="2" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <text x="22" y="100" font-size="1.4" fill="#666" text-anchor="middle">DEPTH</text>
-  <circle cx="22" cy="103.5" r="2" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <text x="31" y="100" font-size="1.4" fill="#666" text-anchor="middle">SHAPE</text>
-  <rect x="29.4" y="102" width="3.2" height="3.5" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="0.6,0.6" rx="0.3"/>
 
   <!-- Mode switch + LEDs -->
   <text x="22" y="111" font-size="1.4" fill="#666" text-anchor="middle">MODE</text>
@@ -119,12 +108,6 @@
 
   <line x1="48" y1="93" x2="79" y2="93" stroke="#cfc7b2" stroke-width="0.2"/>
 
-  <!-- REVERB (Future) -->
-  <text x="63.5" y="97" font-size="1.6" fill="#666" text-anchor="middle" letter-spacing="2">REVERB</text>
-  <text x="55" y="102" font-size="1.4" fill="#aaa" text-anchor="middle">SIZE</text>
-  <circle cx="55" cy="105.5" r="2.2" fill="none" stroke="#ccc" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-  <text x="72" y="102" font-size="1.4" fill="#aaa" text-anchor="middle">MIX</text>
-  <circle cx="72" cy="105.5" r="2.2" fill="none" stroke="#ccc" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
 
   <line x1="48" y1="111" x2="79" y2="111" stroke="#cfc7b2" stroke-width="0.2"/>
 
@@ -166,17 +149,6 @@
 
   <line x1="91" y1="91" x2="119" y2="91" stroke="#cfc7b2" stroke-width="0.2"/>
 
-  <!-- ===== BANK B: LFO ===== -->
-  <text x="105" y="95" font-size="1.8" fill="#888" text-anchor="middle" letter-spacing="1">LFO</text>
-
-  <text x="96" y="100" font-size="1.4" fill="#666" text-anchor="middle">SHAPE</text>
-  <rect x="94.4" y="102" width="3.2" height="3.5" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="0.6,0.6" rx="0.3"/>
-
-  <text x="105" y="100" font-size="1.4" fill="#666" text-anchor="middle">DEPTH</text>
-  <circle cx="105" cy="103.5" r="2" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <text x="114" y="100" font-size="1.4" fill="#666" text-anchor="middle">RATE</text>
-  <circle cx="114" cy="103.5" r="2" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
 
   <!-- Mode switch + LEDs -->
   <text x="105" y="111" font-size="1.4" fill="#666" text-anchor="middle">MODE</text>

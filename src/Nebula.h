@@ -1,0 +1,90 @@
+#pragma once
+#include "plugin.hpp"
+#include "dsp/Phaser.h"
+#include "dsp/wavetable.h"
+#include "dsp/wavetableOSC.h"
+#include "dsp/LadderFilter.h"
+
+struct Nebula : Module {
+    enum ParamId {
+        PITCH_A_PARAM, FINE_A_PARAM,
+
+        MORPH_A_PARAM, VOLUME_A_PARAM,
+        SUB_LEVEL_A_PARAM, SUB_OCTAVE_A_PARAM,
+
+        PRESET_A_PARAM, CUTOFF_A_B_PARAM, RES_A_B_PARAM,
+
+        PM_AMOUNT_PARAM,
+        PM_SCALE_PARAM,
+        PM_DIRECTION_PARAM,
+
+        PITCH_B_PARAM, FINE_B_PARAM,
+        MORPH_B_PARAM, VOLUME_B_PARAM, SUB_LEVEL_B_PARAM,
+        SUB_OCTAVE_B_PARAM, PRESET_B_PARAM,
+
+        CHORUS_MIX_PARAM,
+
+        //Phaser Bank A und B
+        PHASER_MOD_A_PARAM,
+        PHASER_STAGES_A_PARAM,
+        PHASER_SKEW_A_PARAM,
+        PHASER_MOD_B_PARAM,
+        PHASER_STAGES_B_PARAM,
+        PHASER_SKEW_B_PARAM,
+
+        //Dry Wet Enums:
+        PHASER_MIX_PARAM_A,
+        CHORUS_MIX_PARAM_A,
+        FILTER_MIX_PARAM_A,
+        PM_MIX_PARAM_A,
+
+        PHASER_MIX_PARAM_B,
+        CHORUS_MIX_PARAM_B,
+        FILTER_MIX_PARAM_B,
+        PM_MIX_PARAM_B,
+
+
+        PARAMS_LEN
+    };
+    enum InputId
+    {
+        MORPH_A_CV_INPUT,
+        MORPH_B_CV_INPUT,
+        CUTOFF_CV_INPUT,
+        PM_AMOUNT_CV_INPUT,
+        CHORUS_MIX_CV_INPUT,
+        PHASER_MIX_CV_INPUT,
+        PHASER_CV_A_INPUT,
+        PHASER_CV_B_INPUT,
+        MOD_CV_INPUT,
+        PITCH_A_CV_INPUT,
+        PITCH_B_CV_INPUT,
+        VOLUME_A_CV_INPUT,
+        VOLUME_B_CV_INPUT,
+        INPUTS_LEN
+
+    };
+    enum OutputId { AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, OUTPUTS_LEN };
+    enum LightId { ADDITIVE_A_LIGHT, WAV_A_LIGHT, ADDITIVE_B_LIGHT, WAV_B_LIGHT, LIGHTS_LEN };
+
+    Wavetable wavetableA, wavetableB;
+    WavetableOsc mainOscA, subOscA, mainOscB, subOscB;
+    LadderFilter filterA, filterB;
+    Phaser phaserA, phaserB;
+
+    float lastSampleA = 0.f, lastSampleB = 0.f;
+    float morphASmoothed = 0.f, morphBSmoothed = 0.f;
+    float freqASmoothed = 110.f, freqBSmoothed = 110.f;
+    int lastPresetA = -1, lastPresetB = -1;
+    bool wavLoadedA = false, wavLoadedB = false;
+    
+
+    Nebula();
+    void onSampleRateChange() override;
+    void process(const ProcessArgs& args) override;
+};
+
+struct NebulaWidget : ModuleWidget {
+    NebulaWidget(Nebula* module);
+    void appendContextMenu(Menu* menu) override;
+};
