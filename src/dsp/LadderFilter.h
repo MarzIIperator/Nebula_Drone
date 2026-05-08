@@ -41,15 +41,13 @@ public:
     }
     float processLp(float input)
     {
-        // ===== Resonanz-Feedback (Phase D + E) =====
-        // Half-Sample-Delay-Kompensation: Mittelwert aus Yd(n-1) und Yd(n-2)
-        // verschiebt Phase um 0.5 Sample → Resonanzfrequenz bleibt = Cutoff
+
         float yd_averaged = 0.5f * (Yd_1 + Yd_2);
         float feedback    = 4.0f * resonanz * yd_averaged;
 
         // ===== Vorberechnungen =====
-        float tanh_in     = tanh((input - feedback) / vt2);   // Feedback zieht vom Input ab
-        float tanh_yd_old = tanh(Yd / vt2);                    // Yd ist hier noch yd(n-1)!
+        float tanh_in     = tanh((input - feedback) / vt2);
+        float tanh_yd_old = tanh(Yd / vt2);
 
         // ===== 4 Stages mit Caches =====
         Ya = Ya + g * vt2 * (tanh_in - Wa);
