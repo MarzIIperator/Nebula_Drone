@@ -6,6 +6,7 @@
 #include "dsp/LadderFilter.h"
 
 struct Nebula : Module {
+
     enum ParamId {
         PITCH_A_PARAM, FINE_A_PARAM,
 
@@ -25,12 +26,13 @@ struct Nebula : Module {
         CHORUS_MIX_PARAM,
 
         //Phaser Bank A und B
-        PHASER_MOD_A_PARAM,
-        PHASER_STAGES_A_PARAM,
-        PHASER_SKEW_A_PARAM,
-        PHASER_MOD_B_PARAM,
-        PHASER_STAGES_B_PARAM,
-        PHASER_SKEW_B_PARAM,
+        PHASER_RATE_A_PARAM,
+        PHASER_DEPTH_A_PARAM,
+        PHASER_FB_A_PARAM,
+
+        PHASER_RATE_B_PARAM,
+        PHASER_DEPTH_B_PARAM,
+        PHASER_FB_B_PARAM,
 
         //Dry Wet Enums:
         PHASER_MIX_PARAM_A,
@@ -54,13 +56,13 @@ struct Nebula : Module {
         PM_AMOUNT_CV_INPUT,
         CHORUS_MIX_CV_INPUT,
         PHASER_MIX_CV_INPUT,
-        PHASER_CV_A_INPUT,
-        PHASER_CV_B_INPUT,
         MOD_CV_INPUT,
         PITCH_A_CV_INPUT,
         PITCH_B_CV_INPUT,
         VOLUME_A_CV_INPUT,
         VOLUME_B_CV_INPUT,
+        PHASER_LFO_A_INPUT,  
+        PHASER_LFO_B_INPUT,
         INPUTS_LEN
 
     };

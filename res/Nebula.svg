@@ -7,14 +7,19 @@
   <rect width="127" height="128.5" fill="#e8e6dd"/>
 
   <!-- Subtle bank tints -->
-  <rect x="3"   y="16" width="38" height="106" fill="#ff6b6b" opacity="0.06" rx="1.5"/>
-  <rect x="86"  y="16" width="38" height="106" fill="#4ecdc4" opacity="0.06" rx="1.5"/>
-  <rect x="44"  y="16" width="39" height="106" fill="#9b8f7a" opacity="0.04" rx="1.5"/>
+  <rect x="3"   y="16" width="38" height="110" fill="#ff6b6b" opacity="0.06" rx="1.5"/>
+  <rect x="86"  y="16" width="38" height="110" fill="#4ecdc4" opacity="0.06" rx="1.5"/>
+  <rect x="44"  y="16" width="39" height="110" fill="#9b8f7a" opacity="0.04" rx="1.5"/>
 
   <!-- Frame -->
-  <rect x="3" y="16" width="38"  height="106" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
-  <rect x="44" y="16" width="39" height="106" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
-  <rect x="86" y="16" width="38" height="106" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
+  <rect x="3" y="16" width="38"  height="110" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
+  <rect x="44" y="16" width="39" height="110" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
+  <rect x="86" y="16" width="38" height="110" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
+
+  <!-- Top accent stripes (replace tiny BANK labels) -->
+  <rect x="3"  y="16" width="38" height="1.4" fill="#ff6b6b" opacity="0.6" rx="0.7"/>
+  <rect x="44" y="16" width="39" height="1.4" fill="#888"    opacity="0.45" rx="0.7"/>
+  <rect x="86" y="16" width="38" height="1.4" fill="#4ecdc4" opacity="0.6" rx="0.7"/>
 
   <!-- ========== MOUNTING HOLES ========== -->
   <circle cx="7.62"   cy="3"     r="1.5" fill="#2a2a3e"/>
@@ -28,138 +33,5 @@
   <text x="63.5" y="12.5" font-size="1.8" fill="#888"
         text-anchor="middle" letter-spacing="1.5">DRONE · TEXTURE · SYNTHESIZER</text>
   <line x1="6" y1="14" x2="121" y2="14" stroke="#888" stroke-width="0.25"/>
-
-  <!-- ========== BANK A LABEL ========== -->
-  <rect x="14" y="17.5" width="16" height="3.5" fill="#ff6b6b" opacity="0.85" rx="0.8"/>
-  <text x="22" y="20" font-size="2.4" font-weight="bold" fill="#fff"
-        text-anchor="middle" letter-spacing="1.5">BANK A</text>
-
-  <!-- ===== BANK A: PITCH SECTION ===== -->
-  <text x="22" y="25.5" font-size="2" fill="#666" text-anchor="middle" letter-spacing="0.5">PITCH</text>
-  <circle cx="22" cy="34" r="7" fill="none" stroke="#ff6b6b" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-  <!-- Fine -->
-  <text x="35" y="32" font-size="1.6" fill="#666" text-anchor="middle">FINE</text>
-  <circle cx="35" cy="36" r="2.5" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <line x1="8" y1="44" x2="36" y2="44" stroke="#cfc7b2" stroke-width="0.2"/>
-
-  <!-- ===== BANK A: WAVETABLE ===== -->
-  <text x="22" y="48.5" font-size="2" fill="#666" text-anchor="middle" letter-spacing="0.5">MORPH</text>
-  <circle cx="22" cy="55" r="4" fill="none" stroke="#ff6b6b" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-
-  <text x="22" y="65" font-size="2" fill="#666" text-anchor="middle" letter-spacing="0.5">VOLUME</text>
-  <circle cx="22" cy="71" r="4" fill="none" stroke="#ff6b6b" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-
-  <!-- Sub row -->
-  <text x="14" y="80.5" font-size="1.5" fill="#666" text-anchor="middle">SUB</text>
-  <circle cx="14" cy="84.5" r="2.4" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <text x="22" y="80.5" font-size="1.5" fill="#666" text-anchor="middle">OCT</text>
-  <rect x="20.2" y="82.5" width="3.6" height="4" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="0.6,0.6" rx="0.3"/>
-
-  <text x="30" y="80.5" font-size="1.5" fill="#666" text-anchor="middle">PAN</text>
-  <circle cx="30" cy="84.5" r="2.4" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <line x1="8" y1="91" x2="36" y2="91" stroke="#cfc7b2" stroke-width="0.2"/>
-
-
-  <!-- Mode switch + LEDs -->
-  <text x="22" y="111" font-size="1.4" fill="#666" text-anchor="middle">MODE</text>
-  <circle cx="15" cy="114" r="0.9" fill="none" stroke="#4ade80" stroke-width="0.3"/>
-  <text x="11.5" y="115" font-size="1.2" fill="#4ade80">G</text>
-  <rect x="20.4" y="112.5" width="3.2" height="4" fill="none" stroke="#ff6b6b" stroke-width="0.3" stroke-dasharray="0.6,0.6" rx="0.3"/>
-  <circle cx="29" cy="114" r="0.9" fill="none" stroke="#f87171" stroke-width="0.3"/>
-  <text x="32.5" y="115" font-size="1.2" fill="#f87171">W</text>
-
-  <!-- Output L -->
-  <text x="22" y="120" font-size="1.6" fill="#666" text-anchor="middle">OUT L</text>
-  <circle cx="22" cy="120.5" r="3" fill="none" stroke="#ff6b6b" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-
-
-  <!-- ========== CENTER: GLOBAL ========== -->
-  <rect x="55" y="17.5" width="17" height="3.5" fill="#888" opacity="0.85" rx="0.8"/>
-  <text x="63.5" y="20" font-size="2.2" font-weight="bold" fill="#fff"
-        text-anchor="middle" letter-spacing="1">GLOBAL</text>
-
-  <!-- FILTER section -->
-  <text x="63.5" y="25.5" font-size="1.6" fill="#666" text-anchor="middle" letter-spacing="2">FILTER</text>
-  <text x="63.5" y="30" font-size="2" fill="#666" text-anchor="middle">CUTOFF</text>
-  <circle cx="63.5" cy="38" r="6" fill="none" stroke="#888" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-
-  <text x="55" y="50" font-size="1.5" fill="#666" text-anchor="middle">RES</text>
-  <circle cx="55" cy="54" r="2.4" fill="none" stroke="#888" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-  <text x="72" y="50" font-size="1.5" fill="#666" text-anchor="middle">LP·HP</text>
-  <rect x="70.4" y="52" width="3.2" height="4" fill="none" stroke="#888" stroke-width="0.3" stroke-dasharray="0.6,0.6" rx="0.3"/>
-
-  <line x1="48" y1="59" x2="79" y2="59" stroke="#cfc7b2" stroke-width="0.2"/>
-
-  <!-- PHASE MOD (Future) -->
-  <text x="63.5" y="63.5" font-size="1.6" fill="#666" text-anchor="middle" letter-spacing="2">PHASE MOD</text>
-  <text x="55" y="69" font-size="1.4" fill="#aaa" text-anchor="middle">AMT</text>
-  <circle cx="55" cy="72.5" r="2.2" fill="none" stroke="#ccc" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-  <text x="72" y="69" font-size="1.4" fill="#aaa" text-anchor="middle">DIR</text>
-  <rect x="70.4" y="70.5" width="3.2" height="4" fill="none" stroke="#ccc" stroke-width="0.3" stroke-dasharray="0.6,0.6" rx="0.3"/>
-
-  <line x1="48" y1="78" x2="79" y2="78" stroke="#cfc7b2" stroke-width="0.2"/>
-
-  <!-- DRIFT (Future) -->
-  <text x="63.5" y="82" font-size="1.6" fill="#666" text-anchor="middle" letter-spacing="2">DRIFT</text>
-  <circle cx="63.5" cy="88" r="2.2" fill="none" stroke="#ccc" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <line x1="48" y1="93" x2="79" y2="93" stroke="#cfc7b2" stroke-width="0.2"/>
-
-
-  <line x1="48" y1="111" x2="79" y2="111" stroke="#cfc7b2" stroke-width="0.2"/>
-
-  <!-- MASTER -->
-  <text x="63.5" y="115" font-size="1.6" fill="#666" text-anchor="middle" letter-spacing="2">MASTER</text>
-  <circle cx="63.5" cy="120" r="2.5" fill="none" stroke="#888" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-
-
-  <!-- ========== BANK B LABEL ========== -->
-  <rect x="97" y="17.5" width="16" height="3.5" fill="#4ecdc4" opacity="0.85" rx="0.8"/>
-  <text x="105" y="20" font-size="2.4" font-weight="bold" fill="#fff"
-        text-anchor="middle" letter-spacing="1.5">BANK B</text>
-
-  <!-- ===== BANK B: PITCH SECTION ===== -->
-  <text x="105" y="25.5" font-size="2" fill="#666" text-anchor="middle" letter-spacing="0.5">PITCH</text>
-  <circle cx="105" cy="34" r="7" fill="none" stroke="#4ecdc4" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-  <!-- Fine (left side, mirrored) -->
-  <text x="92" y="32" font-size="1.6" fill="#666" text-anchor="middle">FINE</text>
-  <circle cx="92" cy="36" r="2.5" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <line x1="91" y1="44" x2="119" y2="44" stroke="#cfc7b2" stroke-width="0.2"/>
-
-  <!-- ===== BANK B: WAVETABLE ===== -->
-  <text x="105" y="48.5" font-size="2" fill="#666" text-anchor="middle" letter-spacing="0.5">MORPH</text>
-  <circle cx="105" cy="55" r="4" fill="none" stroke="#4ecdc4" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-
-  <text x="105" y="65" font-size="2" fill="#666" text-anchor="middle" letter-spacing="0.5">VOLUME</text>
-  <circle cx="105" cy="71" r="4" fill="none" stroke="#4ecdc4" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
-
-  <!-- Sub row (mirrored) -->
-  <text x="97" y="80.5" font-size="1.5" fill="#666" text-anchor="middle">PAN</text>
-  <circle cx="97" cy="84.5" r="2.4" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <text x="105" y="80.5" font-size="1.5" fill="#666" text-anchor="middle">OCT</text>
-  <rect x="103.2" y="82.5" width="3.6" height="4" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="0.6,0.6" rx="0.3"/>
-
-  <text x="113" y="80.5" font-size="1.5" fill="#666" text-anchor="middle">SUB</text>
-  <circle cx="113" cy="84.5" r="2.4" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="0.6,0.6"/>
-
-  <line x1="91" y1="91" x2="119" y2="91" stroke="#cfc7b2" stroke-width="0.2"/>
-
-
-  <!-- Mode switch + LEDs -->
-  <text x="105" y="111" font-size="1.4" fill="#666" text-anchor="middle">MODE</text>
-  <circle cx="98" cy="114" r="0.9" fill="none" stroke="#4ade80" stroke-width="0.3"/>
-  <text x="94.5" y="115" font-size="1.2" fill="#4ade80">G</text>
-  <rect x="103.4" y="112.5" width="3.2" height="4" fill="none" stroke="#4ecdc4" stroke-width="0.3" stroke-dasharray="0.6,0.6" rx="0.3"/>
-  <circle cx="112" cy="114" r="0.9" fill="none" stroke="#f87171" stroke-width="0.3"/>
-  <text x="115.5" y="115" font-size="1.2" fill="#f87171">W</text>
-
-  <!-- Output R -->
-  <text x="105" y="120" font-size="1.6" fill="#666" text-anchor="middle">OUT R</text>
-  <circle cx="105" cy="120.5" r="3" fill="none" stroke="#4ecdc4" stroke-width="0.4" stroke-dasharray="0.6,0.6"/>
 
 </svg>
