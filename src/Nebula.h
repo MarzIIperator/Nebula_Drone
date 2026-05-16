@@ -1,11 +1,12 @@
 #pragma once
-#include "plugin.hpp"
 #include "dsp/Phaser.h"
 #include "dsp/wavetable.h"
 #include "dsp/wavetableOSC.h"
 #include "dsp/LadderFilter.h"
+#include "dsp/Chorus.h"
+#include "rack.hpp"
 
-struct Nebula : Module {
+struct Nebula : rack::Module {
 
     enum ParamId {
         PITCH_A_PARAM, FINE_A_PARAM,
@@ -24,6 +25,13 @@ struct Nebula : Module {
         SUB_OCTAVE_B_PARAM, PRESET_B_PARAM,
 
         CHORUS_MIX_PARAM,
+        CHORUS_RATE_A_PARAM,
+        CHORUS_DEPTH_A_PARAM,
+        CHORUS_FEEDBACK_A_PARAM,
+
+        CHORUS_RATE_B_PARAM,
+        CHORUS_DEPTH_B_PARAM,
+        CHORUS_FEEDBACK_B_PARAM,
 
         //Phaser Bank A und B
         PHASER_RATE_A_PARAM,
@@ -73,6 +81,7 @@ struct Nebula : Module {
     WavetableOsc mainOscA, subOscA, mainOscB, subOscB;
     LadderFilter filterA, filterB;
     Phaser phaserA, phaserB;
+    Chorus chorusA, chorusB;
 
     float lastSampleA = 0.f, lastSampleB = 0.f;
     float morphASmoothed = 0.f, morphBSmoothed = 0.f;
@@ -86,7 +95,7 @@ struct Nebula : Module {
     void process(const ProcessArgs& args) override;
 };
 
-struct NebulaWidget : ModuleWidget {
+struct NebulaWidget : rack::ModuleWidget {
     NebulaWidget(Nebula* module);
-    void appendContextMenu(Menu* menu) override;
+    void appendContextMenu(rack::Menu* menu) override;
 };

@@ -1,37 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="127mm" height="128.5mm" viewBox="0 0 127 128.5"
-     xmlns="http://www.w3.org/2000/svg"
-     font-family="Helvetica, Arial, sans-serif">
-
-  <!-- ========== BACKGROUND ========== -->
+<svg width="127mm" height="128.5mm" viewBox="0 0 127 128.5" xmlns="http://www.w3.org/2000/svg">
   <rect width="127" height="128.5" fill="#e8e6dd"/>
 
-  <!-- Subtle bank tints -->
-  <rect x="3"   y="16" width="38" height="110" fill="#ff6b6b" opacity="0.06" rx="1.5"/>
-  <rect x="86"  y="16" width="38" height="110" fill="#4ecdc4" opacity="0.06" rx="1.5"/>
-  <rect x="44"  y="16" width="39" height="110" fill="#9b8f7a" opacity="0.04" rx="1.5"/>
+  <rect x="3"   y="4" width="38" height="121" fill="#ff6b6b" opacity="0.06" rx="1.5"/>
+  <rect x="86"  y="4" width="38" height="121" fill="#4ecdc4" opacity="0.06" rx="1.5"/>
+  <rect x="44"  y="4" width="39" height="121" fill="#9b8f7a" opacity="0.04" rx="1.5"/>
 
-  <!-- Frame -->
-  <rect x="3" y="16" width="38"  height="110" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
-  <rect x="44" y="16" width="39" height="110" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
-  <rect x="86" y="16" width="38" height="110" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
+  <rect x="3" y="4" width="38"  height="121" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
+  <rect x="44" y="4" width="39" height="121" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
+  <rect x="86" y="4" width="38" height="121" fill="none" stroke="#cfc7b2" stroke-width="0.2" rx="1.5"/>
 
-  <!-- Top accent stripes (replace tiny BANK labels) -->
-  <rect x="3"  y="16" width="38" height="1.4" fill="#ff6b6b" opacity="0.6" rx="0.7"/>
-  <rect x="44" y="16" width="39" height="1.4" fill="#888"    opacity="0.45" rx="0.7"/>
-  <rect x="86" y="16" width="38" height="1.4" fill="#4ecdc4" opacity="0.6" rx="0.7"/>
+  <rect x="3"  y="4" width="38" height="1.4" fill="#ff6b6b" opacity="0.6" rx="0.7"/>
+  <rect x="44" y="4" width="39" height="1.4" fill="#888"    opacity="0.45" rx="0.7"/>
+  <rect x="86" y="4" width="38" height="1.4" fill="#4ecdc4" opacity="0.6" rx="0.7"/>
 
-  <!-- ========== MOUNTING HOLES ========== -->
   <circle cx="7.62"   cy="3"     r="1.5" fill="#2a2a3e"/>
   <circle cx="119.38" cy="3"     r="1.5" fill="#2a2a3e"/>
   <circle cx="7.62"   cy="125.5" r="1.5" fill="#2a2a3e"/>
   <circle cx="119.38" cy="125.5" r="1.5" fill="#2a2a3e"/>
-
-  <!-- ========== HEADER ========== -->
-  <text x="63.5" y="8.5" font-size="6" font-weight="bold" fill="#4a9eff"
-        text-anchor="middle" letter-spacing="3">NEBULA</text>
-  <text x="63.5" y="12.5" font-size="1.8" fill="#888"
-        text-anchor="middle" letter-spacing="1.5">DRONE · TEXTURE · SYNTHESIZER</text>
-  <line x1="6" y1="14" x2="121" y2="14" stroke="#888" stroke-width="0.25"/>
-
 </svg>

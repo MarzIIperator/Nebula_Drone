@@ -1,5 +1,6 @@
 #include "Nebula.h"
 #include <iostream>
+#include <cmath>
 
 Nebula::Nebula() {
     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -58,8 +59,12 @@ Nebula::Nebula() {
 void Nebula::onSampleRateChange() {
         filterA.setSampleRate(APP->engine->getSampleRate());
         filterB.setSampleRate(APP->engine->getSampleRate());
+
         phaserA.setSampleRate(APP->engine->getSampleRate());
         phaserB.setSampleRate(APP->engine->getSampleRate());
+
+        chorusA.setSampleRate(APP->engine->getSampleRate());
+        chorusB.setSampleRate(APP->engine->getSampleRate());
 
 }
 
@@ -68,11 +73,11 @@ void Nebula::process(const ProcessArgs& args)
     int pmDirection = (int)params[PM_DIRECTION_PARAM].getValue();
     float pmAmount = params[PM_AMOUNT_PARAM].getValue();
     float pmOffsetA = 0.f, pmOffsetB = 0.f;
-    const float pmScale = 10.f;
+    float pmScale = params[PM_SCALE_PARAM].getValue();
 
     float alpha = 1.f - std::exp(-args.sampleTime / 0.005f);
 
-    // ===== BANK A =====
+// ===== BANK A =====
     int presetA = (int)params[PRESET_A_PARAM].getValue();
     lights[ADDITIVE_A_LIGHT].setBrightness(presetA == 0 ? 1.f : 0.f);
     lights[WAV_A_LIGHT].setBrightness(presetA == 1 ? 1.f : 0.f);
@@ -88,13 +93,21 @@ void Nebula::process(const ProcessArgs& args)
         lastPresetA = presetA;
     }
 
+    // Pitch A
     float octaveA = params[PITCH_A_PARAM].getValue();
     float fineA   = params[FINE_A_PARAM].getValue();
     float pitchA  = 110.f * std::pow(2.f, octaveA + fineA / 1200.f);
-    float morphATarget = clamp(params[MORPH_A_PARAM].getValue(), 0.f, 1.f);
-
-    morphASmoothed += (morphATarget - morphASmoothed) * alpha;
     freqASmoothed  += (pitchA - freqASmoothed) * alpha;
+
+    // Morph A (Regler + CV Input)
+    float morphParamA = params[MORPH_A_PARAM].getValue();
+    if (inputs[MORPH_A_CV_INPUT].isConnected()) {
+        
+        morphParamA += inputs[MORPH_A_CV_INPUT].getVoltage() * 0.1f;
+    }
+    float morphATarget = rack::clamp(morphParamA, 0.f, 1.f);
+    morphASmoothed += (morphATarget - morphASmoothed) * alpha;
+
 
     // ===== BANK B =====
     int presetB = (int)params[PRESET_B_PARAM].getValue();
@@ -112,17 +125,23 @@ void Nebula::process(const ProcessArgs& args)
         lastPresetB = presetB;
     }
 
+    // Pitch B
     float octaveB = params[PITCH_B_PARAM].getValue();
     float fineB   = params[FINE_B_PARAM].getValue();
     float pitchB  = 110.f * std::pow(2.f, octaveB + fineB / 1200.f);
-    float morphBTarget = clamp(params[MORPH_B_PARAM].getValue(), 0.f, 1.f);
-
-    morphBSmoothed += (morphBTarget - morphBSmoothed) * alpha;
     freqBSmoothed  += (pitchB - freqBSmoothed) * alpha;
+
+    // Morph B (Regler + CV Input)
+    float morphParamB = params[MORPH_B_PARAM].getValue();
+    if (inputs[MORPH_B_CV_INPUT].isConnected()) {
+
+        morphParamB += inputs[MORPH_B_CV_INPUT].getVoltage() * 0.1f;
+    }
+    float morphBTarget = rack::clamp(morphParamB, 0.f, 1.f);
+    morphBSmoothed += (morphBTarget - morphBSmoothed) * alpha;
 
     // ===== Phasen-Modulation Routing =====
     float sampleA, sampleB;
-
     if (pmDirection == 0) {
         // A → B
         sampleA = mainOscA.process(freqASmoothed, args.sampleTime, wavetableA, morphASmoothed, 0.f);
@@ -216,7 +235,7 @@ void Nebula::process(const ProcessArgs& args)
     float phaserOutA;
     if (inputs[PHASER_LFO_A_INPUT].isConnected()) {
         float cv = inputs[PHASER_LFO_A_INPUT].getVoltage();
-        float lfoVal = clamp(cv / 10.f + 0.5f, 0.f, 1.f);
+        float lfoVal = rack::clamp(cv / 10.f + 0.5f, 0.f, 1.f);
         phaserOutA = phaserA.processExternalLFO(filteredA, lfoVal);
     } else {
         phaserOutA = phaserA.process(filteredA);
@@ -225,18 +244,36 @@ void Nebula::process(const ProcessArgs& args)
     float phaserOutB;
     if (inputs[PHASER_LFO_B_INPUT].isConnected()) {
         float cv = inputs[PHASER_LFO_B_INPUT].getVoltage();
-        float lfoVal = clamp(cv / 10.f + 0.5f, 0.f, 1.f);
+        float lfoVal = rack::clamp(cv / 10.f + 0.5f, 0.f, 1.f);
         phaserOutB = phaserB.processExternalLFO(filteredB, lfoVal);
     } else {
         phaserOutB = phaserB.process(filteredB);
     }
 
-    //Chorus
-    //float chorusOutA = chorusA.process(filteredA);
+    // ===== Chorus pro Bank =====
 
-    // ===== Output (Stereo: Bank A → L, Bank B → R) =====
-    outputs[AUDIO_LEFT_OUTPUT].setVoltage(phaserOutA * 5.f);
-    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(phaserOutB * 5.f);
+    chorusA.setRate(params[CHORUS_RATE_A_PARAM].getValue());
+    chorusA.setDepth(params[CHORUS_DEPTH_A_PARAM].getValue());
+    chorusA.setMix(params[CHORUS_MIX_PARAM_A].getValue());
+
+    chorusB.setRate(params[CHORUS_RATE_B_PARAM].getValue());
+    chorusB.setDepth(params[CHORUS_DEPTH_B_PARAM].getValue());
+    chorusB.setMix(params[CHORUS_MIX_PARAM_B].getValue());
+
+
+    auto chorusOutA = chorusA.process(phaserOutA);
+    auto chorusOutB = chorusB.process(phaserOutB);
+
+    // ===== Output Mischen ( Stereo Diffusion) =====
+
+    float finalLeft  = chorusOutA.l + chorusOutB.l;
+    float finalRight = chorusOutA.r + chorusOutB.r;
+
+
+    float outputGain = 5.f * 0.5f;
+
+    outputs[AUDIO_LEFT_OUTPUT].setVoltage(finalLeft * outputGain);
+    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(finalRight * outputGain);
 
     lastSampleA = sampleA;
     lastSampleB = sampleB;
