@@ -81,25 +81,36 @@ void Wavetable::generate1() {
         }
     }
 }
-
 void Wavetable::generate2() {
     for (int f = 0; f < NUM_FRAMES; ++f) {
-        float morphPos = f / 255.f;
-        int numHarmonics = 4 + (int)(morphPos * 12);
+        float morphPos = static_cast<float>(f) / static_cast<float>(NUM_FRAMES - 1);
+
+        float centerHarmonic = 1.0f + morphPos * 19.0f;
 
         for (int i = 0; i < TABLE_SIZE; ++i) {
-            float phase = 2.f * M_PI * i / TABLE_SIZE;
-            float saw = 0.f;
+            float phase = 2.0f * M_PI * i / TABLE_SIZE;
+            float sample = 0.0f;
 
-            for (int h = 1; h <= numHarmonics; h++) {
-                saw += std::sin(h * phase) / h;
+
+            for (int h = 1; h <= 40; ++h) {
+
+                float distance = std::abs((float)h - centerHarmonic);
+
+
+                float amplitude = std::exp(-distance * distance * 0.15f);
+
+
+                amplitude /= std::sqrt((float)h);
+
+                sample += amplitude * std::sin(h * phase);
             }
 
-            frames[f][i] = saw;
+
+            
+            frames[f][i] = std::sin(sample * 1.5f);
         }
     }
 }
-
 float Wavetable::getSample(float phase, float morph) const {
     morph = clamp(morph, 0.f, 1.f);
     phase -= std::floor(phase);
