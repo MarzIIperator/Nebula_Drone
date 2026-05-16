@@ -14,9 +14,9 @@ target_include_directories(Nebula PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/dsp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/Utils
         ${CMAKE_CURRENT_SOURCE_DIR}/dep
-        /Users/emielkastner/Desktop/Rack-SDK/include          # ← Add this
-        /Users/emielkastner/Desktop/Rack-SDK/dep/include      # ← And this
+        /Users/emielkastner/Desktop/Rack-SDK/include
+        /Users/emielkastner/Desktop/Rack-SDK/dep/include
 )
 target_link_libraries(Nebula PRIVATE
-        /Users/emielkastner/Desktop/Rack-SDK/libRack.dylib    # ← macOS shared lib
+        /Users/emielkastner/Desktop/Rack-SDK/libRack.dylib
 )
