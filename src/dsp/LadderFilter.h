@@ -84,8 +84,8 @@ private:
     float cutoffFreq = 1000.f;
     float resonanz = 0.f;
 
-    float vt2 = 0.5f;
-    float Ya = 0.f, Yb = 0.f, Yc = 0.f, Yd = 0.f; // 4 Stufen output
+    float vt2 = 0.7f;
+    float Ya = 0.f, Yb = 0.f, Yc = 0.f, Yd = 0.f; // 4 Stufen Output
     float Wa = 0.f, Wb = 0.f, Wc = 0.f;
     float Yd_1 = 0.f, Yd_2 = 0.f;// Für Half-Sample-Delay
     float g = 0.f;

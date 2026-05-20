@@ -123,6 +123,7 @@ float Wavetable::getSample(float phase, float morph) const {
     float frameFrac = framePos - frameA;
 
     float tablePos = phase * TABLE_SIZE;
+    if (tablePos >= (float)TABLE_SIZE) tablePos -= (float)TABLE_SIZE;
     int idx = static_cast<int>(tablePos);
     float frac = tablePos - idx;
 

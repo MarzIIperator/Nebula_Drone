@@ -63,7 +63,7 @@ public:
         float t = std::tan((float)M_PI * fc / sampleRate_);
         float a1 = (t - 1.f) / (t + 1.f);
 
-        float fbSignal = std::tanh(lastOut_ * feedback_ * 1.5f);
+        float fbSignal = std::tanh(lastOut_ * feedback_);
         float x = input + fbSignal;
 
         for (int i = 0; i < NUM_STAGES; i++) {

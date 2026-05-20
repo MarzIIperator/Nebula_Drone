@@ -1,16 +1,14 @@
 //
-// Chorus.h — True Stereo Modulated Delay (Phase C)
+// Chorus.h
 //
 
 #pragma once
 #include <cmath>
 #include <array>
+#include <math.hpp>
 
 
-struct StereoPair {
-    float l;
-    float r;
-};
+struct StereoPair { float l, r; };
 
 class Chorus {
 public:
@@ -20,95 +18,114 @@ public:
     }
 
     void setRate(float hz)     { lfoRate_ = hz; }
-    void setDepth(float d)     { depth_ = d; }
-    void setMix(float m)       { mix_ = m; }
-    void setFeedback(float f)  { feedback_ = f; }
+    void setDepth(float d)     { depth_ = rack::math::clamp(d, 0.f, 1.f); }
+    void setMix(float m)       { mix_ = rack::math::clamp(m, 0.f, 1.f); }
+    void setFeedback(float f)  { feedback_ = 0.f; }
 
     void reset() {
-        for (auto& s : delayBuffer_) s = 0.f;
+        delayBuffer_.fill(0.f);
         writeIndex_ = 0;
-        lfoPhase_ = 0.f;
+        slowPhase_ = 0.f;
+        fastPhase_ = 0.f;
     }
 
-
     StereoPair process(float input) {
-        // LFO-Basis updaten
-        lfoPhase_ += lfoRate_ / sampleRate_;
-        if (lfoPhase_ >= 1.f) lfoPhase_ -= 1.f;
+        // Input limiting
+        float x = std::tanh(input * 0.2f);
+        // Dual LFO update
+        slowPhase_ += lfoRate_ / sampleRate_;
+        if (slowPhase_ >= 1.f) slowPhase_ -= 1.f;
 
-        //  8 Stimmen  (4 pro Seite)
-        constexpr float baseDelays[NUM_VOICES]    =
-            {7.0f, 9.5f, 13.5f, 17.2f, 21.5f, 24.5f, 11.0f, 19.0f}; // ms
+        fastPhase_ += (lfoRate_ * 8.f) / sampleRate_;
+        if (fastPhase_ >= 1.f) fastPhase_ -= 1.f;
 
-        constexpr float phaseOffsets[NUM_VOICES]  =
-            {0.f, 1.f/4.f, 2.f/4.f, 3.f/4.f, 0.f, 1.f/4.f, 2.f/4.f, 3.f/4.f};
+        struct Voice {
+            float baseDelay;
+            float phaseOffset;
+            float panPos;
+        };
 
-        constexpr float rateMultipliers[NUM_VOICES] = {
-            1.00f, 0.82f, 0.76f, 0.92f, 0.64f, 0.56f, 1.33f, 1.15f
+        constexpr Voice voices[8] = {
+            {10.0f, 0.00f, -0.85f},
+            {13.5f, 0.25f, -0.55f},
+            {17.0f, 0.50f, -0.25f},
+            {20.5f, 0.75f, -0.05f},
+            {11.5f, 0.13f, 0.05f},
+            {15.0f, 0.38f, 0.25f},
+            {18.5f, 0.63f, 0.55f},
+            {22.0f, 0.88f, 0.85f}
         };
 
         float sumL = 0.f;
         float sumR = 0.f;
 
-        for (int v = 0; v < NUM_VOICES; v++) {
-            // Eigene Phase, eigene Rate pro Voice
-            float phaseV = lfoPhase_ * rateMultipliers[v] + phaseOffsets[v];
-            phaseV -= std::floor(phaseV);  // wrap auf 0..1
-            float lfoValV = std::sin(2.f * (float)M_PI * phaseV);
+        for (int v = 0; v < 8; v++) {
+            const auto& voice = voices[v];
 
-            // Eigene Base-Delay + Modulation
-            float modDelayMs = baseDelays[v] + lfoValV * MOD_DEPTH_MS * depth_;
-            float delaySamples = (modDelayMs / 1000.f) * sampleRate_;
+            float slowP = slowPhase_ + voice.phaseOffset;
+            if (slowP >= 1.f) slowP -= 1.f;
+            float slowLfo = std::sin(2.f * M_PI * slowP);
 
-            float readPos = (float)writeIndex_ - delaySamples;
-            while (readPos < 0.f) readPos += (float)BUFFER_SIZE;
-            while (readPos >= (float)BUFFER_SIZE) readPos -= (float)BUFFER_SIZE;
+            float fastP = fastPhase_ + voice.phaseOffset;
+            if (fastP >= 1.f) fastP -= 1.f;
+            float fastLfo = std::sin(2.f * M_PI * fastP);
 
-            //Lineare Interpolation
-            int idx0 = (int)readPos;
-            int idx1 = (idx0 + 1) % BUFFER_SIZE;
-            float frac = readPos - (float)idx0;
-            float delayed = delayBuffer_[idx0] + frac * (delayBuffer_[idx1] - delayBuffer_[idx0]);
+            
+            float slowDepth = 3.5f * 0.001f * sampleRate_ * depth_;
+            float fastDepth = 1.2f * 0.001f * sampleRate_ * depth_;
 
-            // STEREO-PANNING
-            if (v % 2 == 0) {
-                sumL += delayed;
-            } else {
-                sumR += delayed;
-            }
+            float delayMod = slowDepth * (1.f + 0.95f * slowLfo);
+            delayMod += fastDepth * (1.f + 0.95f * fastLfo);
+
+            float totalDelay = voice.baseDelay * 0.001f * sampleRate_ + delayMod;
+            totalDelay = rack::math::clamp(totalDelay, 1.f, (float)(BUFFER_SIZE - 4));
+
+            float readPos = (float)writeIndex_ - totalDelay;
+            while (readPos < 0.f) readPos += BUFFER_SIZE;
+            while (readPos >= BUFFER_SIZE) readPos -= BUFFER_SIZE;
+
+            int i0 = (int)readPos;
+            int i1 = (i0 + 1) % BUFFER_SIZE;
+            float frac = readPos - (float)i0;
+
+            float delayed = delayBuffer_[i0] * (1.f - frac) + delayBuffer_[i1] * frac;
+
+            float panAngle = (voice.panPos + 1.f) * 0.25f * M_PI;
+            float gainL = std::cos(panAngle);
+            float gainR = std::sin(panAngle);
+
+
+            constexpr float VOICE_GAIN = 0.25;
+
+            sumL += delayed * gainL * VOICE_GAIN;
+            sumR += delayed * gainR * VOICE_GAIN;
         }
 
-
-        float halfVoices = NUM_VOICES / 2.0f;
-        sumL /= halfVoices;
-        sumR /= halfVoices;
-
-        delayBuffer_[writeIndex_] = input + (sumL + sumR) * 0.5f * feedback_;
+        delayBuffer_[writeIndex_] = x;
         writeIndex_ = (writeIndex_ + 1) % BUFFER_SIZE;
 
+        sumL *= 7.0f;
+        sumR *= 7.0f;
 
-        StereoPair output;
-        output.l = input * (1.f - mix_) + sumL * mix_;
-        output.r = input * (1.f - mix_) + sumR * mix_;
+        // Mix
+        StereoPair out;
+        out.l = input * (1.f - mix_) + sumL * mix_;
+        out.r = input * (1.f - mix_) + sumR * mix_;
 
-        return output;
-    }
-
-    StereoPair processExternalLFO(float input, float lfoVal01) {
-        return process(input);
+        return out;
     }
 
 private:
-    static constexpr int NUM_VOICES = 8;
-    static constexpr int BUFFER_SIZE = 4096;
-    static constexpr float MOD_DEPTH_MS = 4.f;
+    static constexpr int BUFFER_SIZE = 8192;
 
     float sampleRate_ = 48000.f;
-    float lfoRate_    = 0.0f;
-    float depth_      = 0.0f;
-    float mix_        = 0.5f;
-    float feedback_   = 0.4f;
-    float lfoPhase_   = 0.f;
-    int   writeIndex_ = 0;
-    std::array<float, BUFFER_SIZE> delayBuffer_ = {};
+    float lfoRate_ = 0.0f;
+    float depth_ = 0.f;
+    float mix_ = 0.5f;
+    float feedback_ = 0.f;
+    float slowPhase_ = 0.f;
+    float fastPhase_ = 0.f;
+    int writeIndex_ = 0;
+
+    std::array<float, BUFFER_SIZE> delayBuffer_{};
 };
