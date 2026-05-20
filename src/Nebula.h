@@ -53,7 +53,7 @@ struct Nebula : rack::Module {
         FILTER_MIX_PARAM_B,
         PM_MIX_PARAM_B,
 
-
+        CROSS_SPILL_PARAM,
         PARAMS_LEN
     };
     enum InputId

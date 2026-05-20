@@ -44,7 +44,7 @@ Nebula::Nebula() {
     configParam(PHASER_FB_B_PARAM, 0.f, 0.95f, 0.3f, "Phaser Feedback B");
     configInput(PHASER_LFO_B_INPUT, "Phaser LFO B");
 
-
+    configParam( CROSS_SPILL_PARAM, 0.f, 1.f, 0.5f, " CROSS SPILL", " %", 0, 100);
     configOutput(AUDIO_LEFT_OUTPUT, "Left");
     configOutput(AUDIO_RIGHT_OUTPUT, "Right");
 
@@ -251,29 +251,51 @@ void Nebula::process(const ProcessArgs& args)
     }
 
     // ===== Chorus pro Bank =====
+    float rateKnobA = params[CHORUS_RATE_A_PARAM].getValue();
+    float depthKnobA = params[CHORUS_DEPTH_A_PARAM].getValue();
 
-    chorusA.setRate(params[CHORUS_RATE_A_PARAM].getValue());
-    chorusA.setDepth(params[CHORUS_DEPTH_A_PARAM].getValue());
+    float rateKnobB = params[CHORUS_RATE_B_PARAM].getValue();
+    float depthKnobB = params[CHORUS_DEPTH_B_PARAM].getValue();
+
+    // Map rate: 0.1 Hz to 2.0 Hz
+    chorusA.setRate(0.1f + rateKnobA * 1.9f);
+    chorusA.setDepth(depthKnobA);
     chorusA.setMix(params[CHORUS_MIX_PARAM_A].getValue());
+    chorusA.setFeedback(0.0f);  // Start with no feedback
 
-    chorusB.setRate(params[CHORUS_RATE_B_PARAM].getValue());
-    chorusB.setDepth(params[CHORUS_DEPTH_B_PARAM].getValue());
+    chorusB.setRate(0.1f + rateKnobB * 1.9f);
+    chorusB.setDepth(depthKnobB);
     chorusB.setMix(params[CHORUS_MIX_PARAM_B].getValue());
-
+    chorusB.setFeedback(0.0f);  // Start with no feedback
 
     auto chorusOutA = chorusA.process(phaserOutA);
     auto chorusOutB = chorusB.process(phaserOutB);
 
-    // ===== Output Mischen ( Stereo Diffusion) =====
+    // ===== STEREO MIXING =====
 
-    float finalLeft  = chorusOutA.l + chorusOutB.l;
-    float finalRight = chorusOutA.r + chorusOutB.r;
+    float crossSpill = params[CROSS_SPILL_PARAM].getValue();
 
 
-    float outputGain = 5.f * 0.5f;
+    float leftDirect = chorusOutA.l * (1.f - crossSpill * 0.5f);
+    float leftCross = chorusOutB.l * (crossSpill * 0.5f);
 
-    outputs[AUDIO_LEFT_OUTPUT].setVoltage(finalLeft * outputGain);
-    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(finalRight * outputGain);
+    float rightDirect = chorusOutB.r * (1.f - crossSpill * 0.5f);
+    float rightCross = chorusOutA.r * (crossSpill * 0.5f);
+
+    float finalLeft = leftDirect + leftCross;
+    float finalRight = rightDirect + rightCross;
+
+    float outputGain = 1.f;
+
+    auto softClip = [](float x) {
+        return std::tanh(x);
+    };
+
+    finalLeft = softClip(finalLeft);
+    finalRight = softClip(finalRight);
+
+    outputs[AUDIO_LEFT_OUTPUT].setVoltage(finalLeft * outputGain * 5.f);
+    outputs[AUDIO_RIGHT_OUTPUT].setVoltage(finalRight * outputGain * 5.f);
 
     lastSampleA = sampleA;
     lastSampleB = sampleB;
