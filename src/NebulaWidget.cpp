@@ -75,7 +75,9 @@ NebulaWidget::NebulaWidget(Nebula* module)
 
     // ----- VOLUME A -----
     addLabel(this, 22, Y_VOL + LBL_OFF, "VOLUME");
+    addLabel(this, 11, Y_VOL + LBL_SUB_OFF, "CV", 7.5f);
 
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(11, Y_VOL)), module, Nebula::VOLUME_A_CV_INPUT));
     addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(22, Y_VOL)), module, Nebula::VOLUME_A_PARAM));
 
     // ----- SUB A -----
@@ -179,27 +181,6 @@ NebulaWidget::NebulaWidget(Nebula* module)
     addParam(createParamCentered<LightSlider<VCVSlider>>(mm2px(Vec(76, Y_MID_MIX + 12.f)), module,
                                                          Nebula::CHORUS_MIX_PARAM_B));
 
-    // ===== UNISON / SPREAD / VOL CV (unter den Slidern) =====
-    const float Y_UNI_SPR = 108.f;
-
-    // Bank A
-    addLabel(this, 49, Y_UNI_SPR + LBL_SUB_OFF, "UNI", 7.0f);
-    addLabel(this, 55, Y_UNI_SPR + LBL_SUB_OFF, "SPR", 7.0f);
-    addLabel(this, 61, Y_UNI_SPR + LBL_SUB_OFF, "CV", 7.0f);
-
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(49, Y_UNI_SPR)), module, Nebula::UNISON_A_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(55, Y_UNI_SPR)), module, Nebula::SPREAD_A_PARAM));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(61, Y_UNI_SPR)), module, Nebula::VOLUME_A_CV_INPUT));
-
-    // Bank B
-    addLabel(this, 65, Y_UNI_SPR + LBL_SUB_OFF, "UNI", 7.0f);
-    addLabel(this, 71, Y_UNI_SPR + LBL_SUB_OFF, "SPR", 7.0f);
-    addLabel(this, 77, Y_UNI_SPR + LBL_SUB_OFF, "CV", 7.0f);
-
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(65, Y_UNI_SPR)), module, Nebula::UNISON_B_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(71, Y_UNI_SPR)), module, Nebula::SPREAD_B_PARAM));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(77, Y_UNI_SPR)), module, Nebula::VOLUME_B_CV_INPUT));
-
     // =====================================================================
     // ============== BANK B (Rechts, X-Zentrum: 105) ==============
     // =====================================================================
@@ -222,8 +203,10 @@ NebulaWidget::NebulaWidget(Nebula* module)
 
     // ----- VOLUME B -----
     addLabel(this, 105, Y_VOL + LBL_OFF, "VOLUME");
+    addLabel(this, 116, Y_VOL + LBL_SUB_OFF, "CV", 7.5f);
 
     addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(105, Y_VOL)), module, Nebula::VOLUME_B_PARAM));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(116, Y_VOL)), module, Nebula::VOLUME_B_CV_INPUT));
 
     // ----- SUB B -----
     addLabel(this, 105, Y_SUB + LBL_OFF, "SUB");

@@ -158,7 +158,7 @@ void Wavetable::generate2()
                 else
                 {
                     float t = smooth((morphPos - 0.75f) / 0.25f);
-                    weight = organW * (1.f - t);
+                    weight = organW;
                 }
 
                 sample += weight * std::sin(h * phase);

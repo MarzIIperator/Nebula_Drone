@@ -52,11 +52,6 @@ struct Nebula : rack::Module
 
         CROSS_SPILL_PARAM,
 
-        UNISON_A_PARAM,
-        UNISON_B_PARAM,
-        SPREAD_A_PARAM,
-        SPREAD_B_PARAM,
-
         PARAMS_LEN
     };
 
@@ -83,9 +78,7 @@ struct Nebula : rack::Module
     enum LightId { ADDITIVE_A_LIGHT, WAV_A_LIGHT, ADDITIVE_B_LIGHT, WAV_B_LIGHT, LIGHTS_LEN };
 
     Wavetable wavetableA, wavetableB;
-    static constexpr int MAX_UNISON = 4;
-    std::array<WavetableOsc, MAX_UNISON> mainVoicesA, subVoicesA;
-    std::array<WavetableOsc, MAX_UNISON> mainVoicesB, subVoicesB;
+    WavetableOsc mainOscA, subOscA, mainOscB, subOscB;
 
     LadderFilter filterA, filterB;
     Phaser phaserA, phaserB;
@@ -102,12 +95,6 @@ struct Nebula : rack::Module
     Nebula();
     void onSampleRateChange() override;
     void process(const ProcessArgs& args) override;
-
-private:
-    float processVoices(float freq, float morph, Wavetable& wt,
-                        std::array<WavetableOsc, 4>& voices, int numVoices, float spread,
-                        WavetableOsc& subOsc, float subLevel, float freqSub,
-                        float pmOffset, float volume, float sampleTime);
 };
 
 struct NebulaWidget : rack::ModuleWidget

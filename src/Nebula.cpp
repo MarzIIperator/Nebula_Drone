@@ -45,15 +45,11 @@ Nebula::Nebula()
     configParam(PHASER_FB_B_PARAM, 0.f, 0.95f, 0.3f, "Phaser Feedback B");
     configInput(PHASER_LFO_B_INPUT, "Phaser LFO B");
 
+    configParam(PM_SCALE_PARAM, 0.f, 20.f, 0.f, "PM Scale", " %");
+
     configParam(SYNC_A_B_PARAM, 0.f, 1.f, 0.f, "Sync A/B");
 
     configParam(CROSS_SPILL_PARAM, 0.f, 1.f, 0.5f, " CROSS SPILL", " %", 0, 100);
-
-    configParam(UNISON_A_PARAM, 1.f, 4.f, 1.f, "Unison A", " voices");
-    configParam(SPREAD_A_PARAM, 0.f, 25.f, 8.f, "Spread A", " cents");
-
-    configParam(UNISON_B_PARAM, 1.f, 4.f, 1.f, "Unison B", " voices");
-    configParam(SPREAD_B_PARAM, 0.f, 25.f, 8.f, "Spread B", " cents");
 
     configOutput(AUDIO_LEFT_OUTPUT, "Left");
     configOutput(AUDIO_RIGHT_OUTPUT, "Right");
@@ -75,35 +71,6 @@ void Nebula::onSampleRateChange()
 
     chorusA.setSampleRate(APP->engine->getSampleRate());
     chorusB.setSampleRate(APP->engine->getSampleRate());
-}
-
-float Nebula::processVoices(float freq, float morph, Wavetable& wt,
-                            std::array<WavetableOsc, 4>& voices, int numVoices, float spread,
-                            WavetableOsc& subOsc, float subLevel, float freqSub,
-                            float pmOffset, float volume, float sampleTime)
-{
-    float sample = 0.f;
-
-    if (numVoices <= 1)
-    {
-        sample = voices[0].process(freq, sampleTime, wt, morph, pmOffset);
-    }
-    else
-    {
-        for (int v = 0; v < numVoices; v++)
-        {
-            float detune = spread * ((float)v / (float)(numVoices - 1) * 2.f - 1.f);
-            float freqV = freq * std::pow(2.f, detune / 1200.f);
-            sample += voices[v].process(freqV, sampleTime, wt, morph, pmOffset);
-        }
-        sample /= (float)numVoices;
-    }
-
-    if (subLevel > 0.f)
-    {
-        sample += subOsc.process(freqSub, sampleTime, wt, 0.f, 0.f) * subLevel;
-    }
-    return sample * volume;
 }
 
 void Nebula::process(const ProcessArgs& args)
@@ -226,11 +193,6 @@ void Nebula::process(const ProcessArgs& args)
         volB = rack::clamp(volB, 0.f, 1.f);
     }
 
-    int voicesA = (int)params[UNISON_A_PARAM].getValue();
-    float spreadA = params[SPREAD_A_PARAM].getValue();
-    int voicesB = (int)params[UNISON_B_PARAM].getValue();
-    float spreadB = params[SPREAD_B_PARAM].getValue();
-
     float subLevelA = params[SUB_LEVEL_A_PARAM].getValue();
     float subLevelB = params[SUB_LEVEL_B_PARAM].getValue();
     int subOctaveA = (int)params[SUB_OCTAVE_A_PARAM].getValue();
@@ -242,49 +204,51 @@ void Nebula::process(const ProcessArgs& args)
 
     if (pmDirection == 0)
     {
-        // A -> B
-        sampleA = processVoices(freqASmoothed, morphASmoothed, wavetableA,
-                                mainVoicesA, voicesA, spreadA,
-                                subVoicesA[0], subLevelA, freqSubA,
-                                0.f, volA, args.sampleTime);
+        // A  →  B
+        sampleA = mainOscA.process(freqASmoothed, args.sampleTime, wavetableA, morphASmoothed, 0.f);
+        if (subLevelA > 0.f)
+            sampleA += subOscA.process(freqSubA, args.sampleTime, wavetableA, 0.f, 0.f) * subLevelA;
+        sampleA *= volA;
+
         pmOffsetB = sampleA * pmAmount * pmScale;
 
         float phaseB = syncAktive ? (syncPhaseSmoothed + pmOffsetB) : pmOffsetB;
-        sampleB = processVoices(freqBSmoothed, morphBSmoothed, wavetableB,
-                                mainVoicesB, voicesB, spreadB,
-                                subVoicesB[0], subLevelB, freqSubB,
-                                phaseB, volB, args.sampleTime);
+        sampleB = mainOscB.process(freqBSmoothed, args.sampleTime, wavetableB, morphBSmoothed, phaseB);
+        if (subLevelB > 0.f)
+            sampleB += subOscB.process(freqSubB, args.sampleTime, wavetableB, 0.f, 0.f) * subLevelB;
+        sampleB *= volB;
     }
     else if (pmDirection == 1)
     {
-        // B -> A
-        sampleB = processVoices(freqBSmoothed, morphBSmoothed, wavetableB,
-                                mainVoicesB, voicesB, spreadB,
-                                subVoicesB[0], subLevelB, freqSubB,
-                                0.f, volB, args.sampleTime);
+        // B  →  A
+        sampleB = mainOscB.process(freqBSmoothed, args.sampleTime, wavetableB, morphBSmoothed, 0.f);
+        if (subLevelB > 0.f)
+            sampleB += subOscB.process(freqSubB, args.sampleTime, wavetableB, 0.f, 0.f) * subLevelB;
+        sampleB *= volB;
+
         pmOffsetA = sampleB * pmAmount * pmScale;
 
-        sampleA = processVoices(freqASmoothed, morphASmoothed, wavetableA,
-                                mainVoicesA, voicesA, spreadA,
-                                subVoicesA[0], subLevelA, freqSubA,
-                                pmOffsetA, volA, args.sampleTime);
+        sampleA = mainOscA.process(freqASmoothed, args.sampleTime, wavetableA, morphASmoothed, pmOffsetA);
+        if (subLevelA > 0.f)
+            sampleA += subOscA.process(freqSubA, args.sampleTime, wavetableA, 0.f, 0.f) * subLevelA;
+        sampleA *= volA;
     }
     else
     {
-        // A <-> B
-        pmOffsetA = lastSampleA * pmAmount * pmScale;
-        pmOffsetB = lastSampleB * pmAmount * pmScale;
+        // A  ↔  B
+        pmOffsetA = lastSampleA * pmAmount * pmScale * 0.35f;
+        pmOffsetB = lastSampleB * pmAmount * pmScale * 0.35f;
 
-        sampleA = processVoices(freqASmoothed, morphASmoothed, wavetableA,
-                                mainVoicesA, voicesA, spreadA,
-                                subVoicesA[0], subLevelA, freqSubA,
-                                pmOffsetA, volA, args.sampleTime);
+        sampleA = mainOscA.process(freqASmoothed, args.sampleTime, wavetableA, morphASmoothed, pmOffsetA);
+        if (subLevelA > 0.f)
+            sampleA += subOscA.process(freqSubA, args.sampleTime, wavetableA, 0.f, 0.f) * subLevelA;
+        sampleA *= volA;
 
         float phaseB = syncAktive ? (syncPhaseSmoothed + pmOffsetB) : pmOffsetB;
-        sampleB = processVoices(freqBSmoothed, morphBSmoothed, wavetableB,
-                                mainVoicesB, voicesB, spreadB,
-                                subVoicesB[0], subLevelB, freqSubB,
-                                phaseB, volB, args.sampleTime);
+        sampleB = mainOscB.process(freqBSmoothed, args.sampleTime, wavetableB, morphBSmoothed, phaseB);
+        if (subLevelB > 0.f)
+            sampleB += subOscB.process(freqSubB, args.sampleTime, wavetableB, 0.f, 0.f) * subLevelB;
+        sampleB *= volB;
     }
     // ===== Filter =====
     float cutoffHz = std::exp(params[CUTOFF_A_B_PARAM].getValue());
