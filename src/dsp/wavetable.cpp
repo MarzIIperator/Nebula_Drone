@@ -4,61 +4,77 @@
 #include <iostream>
 #include "../Utils/AudioFile.h"
 
-static float clamp(float val, float lo, float hi) {
+static float clamp(float val, float lo, float hi)
+{
     if (val < lo) return lo;
     if (val > hi) return hi;
     return val;
 }
 
-Wavetable::Wavetable() {
+Wavetable::Wavetable()
+{
     clear();
 }
 
-void Wavetable::clear() {
-    for (auto& frame : frames) {
+void Wavetable::clear()
+{
+    for (auto& frame : frames)
+    {
         frame.fill(0.f);
     }
-    for (auto& frame : framesWav) {
+    for (auto& frame : framesWav)
+    {
         frame.fill(0.f);
     }
 }
 
-void Wavetable::generateBasic(int preset) {
-    switch(preset) {
-        case 0:
-            generate1();
-            break;
-        case 1:
-            generate2();
-            break;
-        default:
-            generate1();
+void Wavetable::generateBasic(int preset)
+{
+    switch (preset)
+    {
+    case 0:
+        generate1();
+        break;
+    case 1:
+        generate2();
+        break;
+    default:
+        generate1();
     }
     normalizeAndWrap();
 }
 
-void Wavetable::generate1() {
-    auto clamp01 = [](float x) {
+void Wavetable::generate1()
+{
+    auto clamp01 = [](float x)
+    {
         return (x < 0.f) ? 0.f : (x > 1.f ? 1.f : x);
     };
-    auto smoothstep01 = [&](float x) {
+    auto smoothstep01 = [&](float x)
+    {
         x = clamp01(x);
         return x * x * (3.f - 2.f * x);
     };
-    auto lerp = [](float start, float end, float alpha) {
+    auto lerp = [](float start, float end, float alpha)
+    {
         return start + (end - start) * alpha;
     };
 
-    for (int frameIndex = 0; frameIndex < NUM_FRAMES; ++frameIndex) {
+    for (int frameIndex = 0; frameIndex < NUM_FRAMES; ++frameIndex)
+    {
         float morphPos = static_cast<float>(frameIndex) / static_cast<float>(NUM_FRAMES - 1);
 
-        for (int sampleIndex = 0; sampleIndex < TABLE_SIZE; ++sampleIndex) {
+        for (int sampleIndex = 0; sampleIndex < TABLE_SIZE; ++sampleIndex)
+        {
             float phaseRadians = 2.f * static_cast<float>(M_PI) * sampleIndex / TABLE_SIZE;
             float sineFundamental = std::sin(phaseRadians);
 
-            float k1Organ = 0.90f * std::sin(phaseRadians) + 0.22f * std::sin(2.f * phaseRadians) + 0.10f * std::sin(3.f * phaseRadians);
+            float k1Organ = 0.90f * std::sin(phaseRadians) + 0.22f * std::sin(2.f * phaseRadians) + 0.10f * std::sin(
+                3.f * phaseRadians);
             float k2Triangle = (2.f / static_cast<float>(M_PI)) * std::asin(std::sin(phaseRadians));
-            float k3SaturatedSaw = std::tanh(1.8f * std::sin(phaseRadians) + 0.8f * std::sin(2.f * phaseRadians) + 0.2f * std::sin(3.f * phaseRadians));
+            float k3SaturatedSaw = std::tanh(
+                1.8f * std::sin(phaseRadians) + 0.8f * std::sin(2.f * phaseRadians) + 0.2f * std::sin(
+                    3.f * phaseRadians));
             float pulseCenter = 0.60f - 0.35f * morphPos;
             float k4Pulse = std::tanh(7.f * (sineFundamental - pulseCenter));
             float k5Fm = std::sin(phaseRadians + (0.5f + 4.0f * morphPos) * std::sin(2.01f * phaseRadians));
@@ -69,49 +85,92 @@ void Wavetable::generate1() {
             float segmentAlpha = smoothstep01(morphSegmentPos - static_cast<float>(segmentIndex));
 
             float segmentStart, segmentEnd;
-            if (segmentIndex == 0) { segmentStart = k1Organ; segmentEnd = k2Triangle; }
-            else if (segmentIndex == 1) { segmentStart = k2Triangle; segmentEnd = k3SaturatedSaw; }
-            else if (segmentIndex == 2) { segmentStart = k3SaturatedSaw; segmentEnd = k4Pulse; }
-            else { segmentStart = k4Pulse; segmentEnd = k5Fm; }
+            if (segmentIndex == 0)
+            {
+                segmentStart = k1Organ;
+                segmentEnd = k2Triangle;
+            }
+            else if (segmentIndex == 1)
+            {
+                segmentStart = k2Triangle;
+                segmentEnd = k3SaturatedSaw;
+            }
+            else if (segmentIndex == 2)
+            {
+                segmentStart = k3SaturatedSaw;
+                segmentEnd = k4Pulse;
+            }
+            else
+            {
+                segmentStart = k4Pulse;
+                segmentEnd = k5Fm;
+            }
 
             float sampleValue = lerp(segmentStart, segmentEnd, segmentAlpha);
             sampleValue = std::tanh((1.1f + 0.8f * morphPos) * sampleValue);
 
-            frames[frameIndex][sampleIndex] = sampleValue;  // ← In frames (Additive)
+            frames[frameIndex][sampleIndex] = sampleValue;
         }
     }
 }
-void Wavetable::generate2() {
-    for (int f = 0; f < NUM_FRAMES; ++f) {
-        float morphPos = static_cast<float>(f) / static_cast<float>(NUM_FRAMES - 1);
 
-        float centerHarmonic = 1.0f + morphPos * 19.0f;
+void Wavetable::generate2()
+{
+    // Smoothstep für sanfte Übergänge
+    auto smooth = [](float t)
+    {
+        t = (t < 0.f) ? 0.f : (t > 1.f ? 1.f : t);
+        return t * t * (3.f - 2.f * t);
+    };
 
-        for (int i = 0; i < TABLE_SIZE; ++i) {
-            float phase = 2.0f * M_PI * i / TABLE_SIZE;
-            float sample = 0.0f;
+    for (int f = 0; f < NUM_FRAMES; ++f)
+    {
+        float morphPos = (float)f / (float)(NUM_FRAMES - 1);
 
+        for (int i = 0; i < TABLE_SIZE; ++i)
+        {
+            float phase = 2.f * M_PI * i / TABLE_SIZE;
+            float sample = 0.f;
 
-            for (int h = 1; h <= 40; ++h) {
+            for (int h = 1; h <= 12; ++h)
+            {
+                float sineW = (h == 1) ? 1.0f : 0.f;
+                float warmW = (h <= 3) ? 1.f / (h * h) : 0.f;
+                float choirW = (h <= 8) ? 1.f / std::sqrt((float)h) : std::exp(-(h - 8) * 0.5f);
+                float organW = (h <= 12 && h % 2 == 1) ? 1.2f / h : 0.3f / h;
 
-                float distance = std::abs((float)h - centerHarmonic);
+                float weight;
+                if (morphPos < 0.25f)
+                {
+                    float t = smooth(morphPos / 0.25f);
+                    weight = sineW * (1.f - t) + warmW * t;
+                }
+                else if (morphPos < 0.5f)
+                {
+                    float t = smooth((morphPos - 0.25f) / 0.25f);
+                    weight = warmW * (1.f - t) + choirW * t;
+                }
+                else if (morphPos < 0.75f)
+                {
+                    float t = smooth((morphPos - 0.5f) / 0.25f);
+                    weight = choirW * (1.f - t) + organW * t;
+                }
+                else
+                {
+                    float t = smooth((morphPos - 0.75f) / 0.25f);
+                    weight = organW;
+                }
 
-
-                float amplitude = std::exp(-distance * distance * 0.15f);
-
-
-                amplitude /= std::sqrt((float)h);
-
-                sample += amplitude * std::sin(h * phase);
+                sample += weight * std::sin(h * phase);
             }
 
-
-            
-            frames[f][i] = std::sin(sample * 1.5f);
+            frames[f][i] = sample;
         }
     }
 }
-float Wavetable::getSample(float phase, float morph) const {
+
+float Wavetable::getSample(float phase, float morph) const
+{
     morph = clamp(morph, 0.f, 1.f);
     phase -= std::floor(phase);
 
@@ -138,43 +197,45 @@ float Wavetable::getSample(float phase, float morph) const {
     return sampleA + (sampleB - sampleA) * frameFrac;
 }
 
-void Wavetable::normalizeAndWrap() {
-    float globalMax = 0.f;
-
-    for (int f = 0; f < NUM_FRAMES; ++f) {
+void Wavetable::normalizeAndWrap()
+{
+    for (int f = 0; f < NUM_FRAMES; ++f)
+    {
+        float maxFrame = 0.f;
         for (int i = 0; i < TABLE_SIZE; ++i) {
-            globalMax = std::max(globalMax, std::fabs(frames[f][i]));
+            maxFrame = std::max(maxFrame, std::abs(frames[f][i]));
         }
-    }
-
-    if (globalMax <= 0.f) return;
-
-    for (int f = 0; f < NUM_FRAMES; ++f) {
-        for (int i = 0; i < TABLE_SIZE; ++i) {
-            frames[f][i] /= globalMax;
+        if (maxFrame > 0.f) {
+            for (int i = 0; i < TABLE_SIZE; ++i) {
+                frames[f][i] /= maxFrame;
+            }
         }
         frames[f][TABLE_SIZE] = frames[f][0];
     }
 }
 
-void Wavetable::loadFromWav(const char* path) {
+void Wavetable::loadFromWav(const char* path)
+{
     std::cout << "=== NEBULA: loadFromWav ===" << std::endl;
 
     AudioFile<float> audioFile;
 
-    if (!audioFile.load(path)) {
+    if (!audioFile.load(path))
+    {
         std::cout << "ERROR: Failed to load!" << std::endl;
         return;
     }
 
-    if (!audioFile.isMono()) {
+    if (!audioFile.isMono())
+    {
         std::cout << "ERROR: Not mono!" << std::endl;
         return;
     }
 
     int totalSamples = audioFile.getNumSamplesPerChannel();
 
-    if (totalSamples % TABLE_SIZE != 0) {
+    if (totalSamples % TABLE_SIZE != 0)
+    {
         std::cout << "ERROR: Samples not divisible by " << TABLE_SIZE << std::endl;
         return;
     }
@@ -183,20 +244,22 @@ void Wavetable::loadFromWav(const char* path) {
     std::cout << "Source frames: " << sourceFrames << ", Target frames: " << NUM_FRAMES << std::endl;
 
     // Resampling: in framesWav schreiben
-    for (int targetFrame = 0; targetFrame < NUM_FRAMES; targetFrame++) {
+    for (int targetFrame = 0; targetFrame < NUM_FRAMES; targetFrame++)
+    {
         float sourcePos = (float)targetFrame / (NUM_FRAMES - 1) * (sourceFrames - 1);
         int sourceFrameA = (int)sourcePos;
         int sourceFrameB = std::min(sourceFrameA + 1, sourceFrames - 1);
         float frac = sourcePos - sourceFrameA;
 
-        for (int i = 0; i < TABLE_SIZE; i++) {
+        for (int i = 0; i < TABLE_SIZE; i++)
+        {
             int idxA = sourceFrameA * TABLE_SIZE + i;
             int idxB = sourceFrameB * TABLE_SIZE + i;
 
             float sampleA = audioFile.samples[0][idxA];
             float sampleB = audioFile.samples[0][idxB];
 
-            framesWav[targetFrame][i] = sampleA + (sampleB - sampleA) * frac;  // ← In framesWav!
+            framesWav[targetFrame][i] = sampleA + (sampleB - sampleA) * frac; // ← In framesWav!
         }
 
         framesWav[targetFrame][TABLE_SIZE] = framesWav[targetFrame][0];
@@ -205,6 +268,8 @@ void Wavetable::loadFromWav(const char* path) {
     std::cout << "SUCCESS: Resampled " << sourceFrames << " → " << NUM_FRAMES << " frames" << std::endl;
 }
 
-void Wavetable::generateMipsFromFullBandwidth() {}
+void Wavetable::generateMipsFromFullBandwidth()
+{
+}
 
 int Wavetable::calculateMipLevel(float freq) { return 0; }

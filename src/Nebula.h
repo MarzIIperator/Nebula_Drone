@@ -6,9 +6,10 @@
 #include "dsp/Chorus.h"
 #include "rack.hpp"
 
-struct Nebula : rack::Module {
-
-    enum ParamId {
+struct Nebula : rack::Module
+{
+    enum ParamId
+    {
         PITCH_A_PARAM, FINE_A_PARAM,
 
         MORPH_A_PARAM, VOLUME_A_PARAM,
@@ -27,11 +28,9 @@ struct Nebula : rack::Module {
         CHORUS_MIX_PARAM,
         CHORUS_RATE_A_PARAM,
         CHORUS_DEPTH_A_PARAM,
-        CHORUS_FEEDBACK_A_PARAM,
 
         CHORUS_RATE_B_PARAM,
         CHORUS_DEPTH_B_PARAM,
-        CHORUS_FEEDBACK_B_PARAM,
 
         //Phaser Bank A und B
         PHASER_RATE_A_PARAM,
@@ -45,17 +44,17 @@ struct Nebula : rack::Module {
         //Dry Wet Enums:
         PHASER_MIX_PARAM_A,
         CHORUS_MIX_PARAM_A,
-        FILTER_MIX_PARAM_A,
-        PM_MIX_PARAM_A,
 
         PHASER_MIX_PARAM_B,
         CHORUS_MIX_PARAM_B,
-        FILTER_MIX_PARAM_B,
-        PM_MIX_PARAM_B,
+
+        SYNC_A_B_PARAM,
 
         CROSS_SPILL_PARAM,
+
         PARAMS_LEN
     };
+
     enum InputId
     {
         MORPH_A_CV_INPUT,
@@ -69,33 +68,37 @@ struct Nebula : rack::Module {
         PITCH_B_CV_INPUT,
         VOLUME_A_CV_INPUT,
         VOLUME_B_CV_INPUT,
-        PHASER_LFO_A_INPUT,  
+        PHASER_LFO_A_INPUT,
         PHASER_LFO_B_INPUT,
         INPUTS_LEN
-
     };
+
     enum OutputId { AUDIO_LEFT_OUTPUT, AUDIO_RIGHT_OUTPUT, OUTPUTS_LEN };
+
     enum LightId { ADDITIVE_A_LIGHT, WAV_A_LIGHT, ADDITIVE_B_LIGHT, WAV_B_LIGHT, LIGHTS_LEN };
 
     Wavetable wavetableA, wavetableB;
     WavetableOsc mainOscA, subOscA, mainOscB, subOscB;
+
     LadderFilter filterA, filterB;
     Phaser phaserA, phaserB;
     Chorus chorusA, chorusB;
 
     float lastSampleA = 0.f, lastSampleB = 0.f;
     float morphASmoothed = 0.f, morphBSmoothed = 0.f;
+    float syncPhaseSmoothed = 0.f;
     float freqASmoothed = 110.f, freqBSmoothed = 110.f;
     int lastPresetA = -1, lastPresetB = -1;
     bool wavLoadedA = false, wavLoadedB = false;
-    
+
 
     Nebula();
     void onSampleRateChange() override;
     void process(const ProcessArgs& args) override;
 };
 
-struct NebulaWidget : rack::ModuleWidget {
+struct NebulaWidget : rack::ModuleWidget
+{
     NebulaWidget(Nebula* module);
     void appendContextMenu(rack::Menu* menu) override;
 };

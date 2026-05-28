@@ -41,14 +41,14 @@ NebulaWidget::NebulaWidget(Nebula* module)
     setPanel(createPanel(asset::plugin(pluginInstance, "res/Nebula.svg")));
 
     // =====================================================================
-    //  VERTIKALES RASTER - LUFTIGER!
+    //  VERTIKALES RASTER
     // =====================================================================
     const float Y_PITCH = 18.f;
     const float Y_MORPH = 34.f;
     const float Y_VOL = 50.f;
     const float Y_SUB = 66.f;
-    const float Y_PHASER = 85.f;    // +1mm mehr Luft!
-    const float Y_CHORUS = 104.f;   // +2mm mehr Luft!
+    const float Y_PHASER = 85.f; // +1mm mehr Luft!
+    const float Y_CHORUS = 104.f; // +2mm mehr Luft!
     const float Y_BOTTOM = 118.f;
     const float LBL_OFF = -7.f;
     const float LBL_SUB_OFF = -5.2f;
@@ -128,7 +128,9 @@ NebulaWidget::NebulaWidget(Nebula* module)
     const float Y_MID_FILTER = 20.f;
     const float Y_MID_PM = 40.f;
     const float Y_MID_PAN = 60.f;
+    const float SYNC_A_B_Y = 55.f;
     const float Y_MID_MIX = 82.f;
+
 
     // ===== FILTER =====
     addLabel(this, 63.5, Y_MID_FILTER + LBL_OFF, "FILTER", 10.f);
@@ -136,8 +138,7 @@ NebulaWidget::NebulaWidget(Nebula* module)
 
     addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(63.5, Y_MID_FILTER)), module,
                                                       Nebula::CUTOFF_A_B_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(77, Y_MID_FILTER)), module,
-                                                      Nebula::RES_A_B_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(77, Y_MID_FILTER)), module, Nebula::RES_A_B_PARAM));
 
     // ===== PHASE MOD =====
     addLabel(this, 63.5, Y_MID_PM + LBL_OFF, "PHASE MOD", 9.f);
@@ -145,25 +146,25 @@ NebulaWidget::NebulaWidget(Nebula* module)
     addLabel(this, 63.5, Y_MID_PM + LBL_SUB_OFF, "DIR", 7.5f);
     addLabel(this, 73, Y_MID_PM + LBL_SUB_OFF, "SCALE", 7.5f);
 
-    addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(54, Y_MID_PM)), module,
-                                                 Nebula::PM_AMOUNT_PARAM));
-    addParam(createParamCentered<CKSSThree>(mm2px(Vec(63.5, Y_MID_PM)), module,
-                                            Nebula::PM_DIRECTION_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(73, Y_MID_PM)), module,
-                                                      Nebula::PM_SCALE_PARAM));
+    addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(54, Y_MID_PM)), module, Nebula::PM_AMOUNT_PARAM));
+    addParam(createParamCentered<CKSSThree>(mm2px(Vec(63.5, Y_MID_PM)), module, Nebula::PM_DIRECTION_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(73, Y_MID_PM)), module, Nebula::PM_SCALE_PARAM));
+
+    // Sync A und B
+    addLabel(this, 63.5, Y_MID_PAN - 6.f, "SYNC", 8.5f);
+    addParam(createParamCentered<CKSS>(mm2px(Vec(63.5, SYNC_A_B_Y)), module, Nebula::SYNC_A_B_PARAM));
 
     // ===== CROSS PAN =====
     addLabel(this, 63.5, Y_MID_PAN + LBL_OFF, "CROSS PAN", 8.5f);
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(63.5, Y_MID_PAN)), module,
-                                                      Nebula::CROSS_SPILL_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(63.5, Y_MID_PAN)), module, Nebula::CROSS_SPILL_PARAM));
 
     // ===== MIX - Abkürzungen PH/CH! =====
     addLabel(this, 63.5, Y_MID_MIX - 14.f, "MIX", 11.f);
 
     // Bank A
     addLabel(this, 55.5, Y_MID_MIX - 7.f, "BANK A", 8.5f);
-    addLabel(this, 51, Y_MID_MIX - 2.f, "PH", 8.f);        // Abkürzung!
-    addLabel(this, 60, Y_MID_MIX - 2.f, "CH", 8.f);        // Abkürzung!
+    addLabel(this, 51, Y_MID_MIX - 2.f, "PH", 8.f); // Abkürzung!
+    addLabel(this, 60, Y_MID_MIX - 2.f, "CH", 8.f); // Abkürzung!
 
     addParam(createParamCentered<LightSlider<VCVSlider>>(mm2px(Vec(51, Y_MID_MIX + 12.f)), module,
                                                          Nebula::PHASER_MIX_PARAM_A));
@@ -172,8 +173,8 @@ NebulaWidget::NebulaWidget(Nebula* module)
 
     // Bank B
     addLabel(this, 71.5, Y_MID_MIX - 7.f, "BANK B", 8.5f);
-    addLabel(this, 67, Y_MID_MIX - 2.f, "PH", 8.f);        // Abkürzung!
-    addLabel(this, 76, Y_MID_MIX - 2.f, "CH", 8.f);        // Abkürzung!
+    addLabel(this, 67, Y_MID_MIX - 2.f, "PH", 8.f); // Abkürzung!
+    addLabel(this, 76, Y_MID_MIX - 2.f, "CH", 8.f); // Abkürzung!
 
     addParam(createParamCentered<LightSlider<VCVSlider>>(mm2px(Vec(67, Y_MID_MIX + 12.f)), module,
                                                          Nebula::PHASER_MIX_PARAM_B));
