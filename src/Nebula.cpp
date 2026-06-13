@@ -45,9 +45,20 @@ Nebula::Nebula()
     configParam(PHASER_FB_B_PARAM, 0.f, 0.95f, 0.3f, "Phaser Feedback B");
     configInput(PHASER_LFO_B_INPUT, "Phaser LFO B");
 
-    configParam(PM_SCALE_PARAM, 0.f, 20.f, 0.f, "PM Scale", " %");
+    // Chorus Bank A und B
+    configParam(CHORUS_RATE_A_PARAM, 0.01f, 5.f, 1.f, "Chorus Rate A", " Hz");
+    configParam(CHORUS_DEPTH_A_PARAM, 0.f, 1.f, 0.2f, "Chorus Depth A");
+    configParam(CHORUS_MIX_PARAM_A, 0.f, 1.f, 0.f, "Chorus Mix A", " %", 0, 100);
+
+    configParam(CHORUS_RATE_B_PARAM, 0.01f, 5.f, 1.f, "Chorus Rate B", " Hz");
+    configParam(CHORUS_DEPTH_B_PARAM, 0.f, 1.f, 0.2f, "Chorus Depth B");
+    configParam(CHORUS_MIX_PARAM_B, 0.f, 1.f, 0.f, "Chorus Mix B", " %", 0, 100);
+
+    configParam(PM_SCALE_PARAM, 0.f, 5.f, 0.f, "PM Scale", " %");
 
     configParam(SYNC_A_B_PARAM, 0.f, 1.f, 0.f, "Sync A/B");
+
+    configParam(VOICES_A_B_PARAM, 0.f, 1.f, 0.5f, "Voices A/B");
 
     configParam(CROSS_SPILL_PARAM, 0.f, 1.f, 0.5f, " CROSS SPILL", " %", 0, 100);
 
@@ -59,8 +70,13 @@ Nebula::Nebula()
     wavetableB.generateBasic(1);
     std::cout << "Bank A: Generate 1 loaded" << std::endl;
     std::cout << "Bank B: Generate 2 loaded" << std::endl;
-}
 
+    for (int i = 0; i < MAIN_VOICES; i++)
+    {
+        mainVoicesA[i].reset(rack::random::uniform());
+        mainVoicesB[i].reset(rack::random::uniform());
+    }
+}
 void Nebula::onSampleRateChange()
 {
     filterA.setSampleRate(APP->engine->getSampleRate());
@@ -71,6 +87,30 @@ void Nebula::onSampleRateChange()
 
     chorusA.setSampleRate(APP->engine->getSampleRate());
     chorusB.setSampleRate(APP->engine->getSampleRate());
+}
+
+float Nebula::processVoices(float freq, float morph, Wavetable& wt, std::array<WavetableOsc, 3>& voices, float pmOffset, float sampleTime, float* drift)
+{
+    int voiceCount = (params[VOICES_A_B_PARAM].getValue() < 0.5f) ? 3 : 1;
+
+    if (voiceCount == 1)
+        return voices[0].process(freq, sampleTime, wt, morph, pmOffset);
+
+    const float detCents[3] = { -15.f, 0.f, +15.f };
+    const float gain[3]     = { 0.65f, 0.5f, 0.65f };
+    const float phOff[3]    = { 0.00f, 0.33f, 0.66f };
+    const float mDelta[3]   = { -0.12f, 0.f, +0.15f };
+
+    float sample = 0.f;
+    for (int v = 0; v < voiceCount; v++) {
+        float totalDetune = detCents[v] + drift[v];
+        float freqV   = freq * std::pow(2.f, totalDetune / 1200.f);
+        float morphV  = rack::clamp(morph + mDelta[v], 0.f, 1.f);
+        float phaseOff = phOff[v] + pmOffset;
+
+        sample += voices[v].process(freqV, sampleTime, wt, morphV, phaseOff) * gain[v];
+    }
+    return sample / std::sqrt(1.8f);
 }
 
 void Nebula::process(const ProcessArgs& args)
@@ -105,19 +145,20 @@ void Nebula::process(const ProcessArgs& args)
     // Pitch A
     float octaveA = params[PITCH_A_PARAM].getValue();
     float fineA = params[FINE_A_PARAM].getValue();
-    float pitchA = 110.f * std::pow(2.f, octaveA + fineA / 1200.f);
 
     if (inputs[PITCH_A_CV_INPUT].isConnected())
     {
-        octaveA += inputs[PITCH_A_CV_INPUT].getVoltage() * 0.2f;
+        octaveA += inputs[PITCH_A_CV_INPUT].getVoltage() * 1.f;
     }
+
+    float pitchA = 110.f * std::pow(2.f, octaveA + fineA / 1200.f);
     freqASmoothed += (pitchA - freqASmoothed) * alpha;
 
     // Morph A (Regler + CV Input)
     float morphParamA = params[MORPH_A_PARAM].getValue();
     if (inputs[MORPH_A_CV_INPUT].isConnected())
     {
-        morphParamA += inputs[MORPH_A_CV_INPUT].getVoltage() * 0.1f;
+        morphParamA += inputs[MORPH_A_CV_INPUT].getVoltage() * 0.2f;
     }
     float morphATarget = rack::clamp(morphParamA, 0.f, 1.f);
     morphASmoothed += (morphATarget - morphASmoothed) * alpha;
@@ -146,19 +187,21 @@ void Nebula::process(const ProcessArgs& args)
     // Pitch B
     float octaveB = params[PITCH_B_PARAM].getValue();
     float fineB = params[FINE_B_PARAM].getValue();
-    float pitchB = 110.f * std::pow(2.f, octaveB + fineB / 1200.f);
 
     if (inputs[PITCH_B_CV_INPUT].isConnected())
     {
-        octaveB += inputs[PITCH_B_CV_INPUT].getVoltage() * 0.2f;
+        octaveB += inputs[PITCH_B_CV_INPUT].getVoltage() * 1.f;
     }
+
+    float pitchB = 110.f * std::pow(2.f, octaveB + fineB / 1200.f);
+
     freqBSmoothed += (pitchB - freqBSmoothed) * alpha;
 
     // Morph B (Regler + CV Input)
     float morphParamB = params[MORPH_B_PARAM].getValue();
     if (inputs[MORPH_B_CV_INPUT].isConnected())
     {
-        morphParamB += inputs[MORPH_B_CV_INPUT].getVoltage() * 0.1f;
+        morphParamB += inputs[MORPH_B_CV_INPUT].getVoltage() * 0.2f;
     }
     float morphBTarget = rack::clamp(morphParamB, 0.f, 1.f);
     morphBSmoothed += (morphBTarget - morphBSmoothed) * alpha;
@@ -193,66 +236,82 @@ void Nebula::process(const ProcessArgs& args)
         volB = rack::clamp(volB, 0.f, 1.f);
     }
 
-    float subLevelA = params[SUB_LEVEL_A_PARAM].getValue();
-    float subLevelB = params[SUB_LEVEL_B_PARAM].getValue();
-    int subOctaveA = (int)params[SUB_OCTAVE_A_PARAM].getValue();
-    int subOctaveB = (int)params[SUB_OCTAVE_B_PARAM].getValue();
-    float freqSubA = freqASmoothed / (subOctaveA == 0 ? 2.f : 4.f);
-    float freqSubB = freqBSmoothed / (subOctaveB == 0 ? 2.f : 4.f);
+
+
+    for (int v = 0; v < MAIN_VOICES; v++)
+    {
+        float noise = (rack::random::uniform() ) * 0.002f;
+        voiceDriftA[v] += noise;
+        voiceDriftB[v] += noise;
+
+        voiceDriftA[v] = rack::clamp(voiceDriftA[v], -5.f, 5.f);
+        voiceDriftB[v] = rack::clamp(voiceDriftB[v], -5.f, 5.f);
+    }
 
     float sampleA, sampleB;
 
     if (pmDirection == 0)
     {
-        // A  →  B
-        sampleA = mainOscA.process(freqASmoothed, args.sampleTime, wavetableA, morphASmoothed, 0.f);
-        if (subLevelA > 0.f)
-            sampleA += subOscA.process(freqSubA, args.sampleTime, wavetableA, 0.f, 0.f) * subLevelA;
-        sampleA *= volA;
+        sampleA = processVoices(freqASmoothed, morphASmoothed, wavetableA,
+                                mainVoicesA, 0.f, args.sampleTime, voiceDriftA);
 
-        pmOffsetB = sampleA * pmAmount * pmScale;
-
+        pmOffsetB = sampleA * pmAmount * pmScale ;
         float phaseB = syncAktive ? (syncPhaseSmoothed + pmOffsetB) : pmOffsetB;
-        sampleB = mainOscB.process(freqBSmoothed, args.sampleTime, wavetableB, morphBSmoothed, phaseB);
-        if (subLevelB > 0.f)
-            sampleB += subOscB.process(freqSubB, args.sampleTime, wavetableB, 0.f, 0.f) * subLevelB;
-        sampleB *= volB;
+        sampleB = processVoices(freqBSmoothed, morphBSmoothed, wavetableB,
+                                mainVoicesB, phaseB, args.sampleTime, voiceDriftB);
+
     }
     else if (pmDirection == 1)
     {
-        // B  →  A
-        sampleB = mainOscB.process(freqBSmoothed, args.sampleTime, wavetableB, morphBSmoothed, 0.f);
-        if (subLevelB > 0.f)
-            sampleB += subOscB.process(freqSubB, args.sampleTime, wavetableB, 0.f, 0.f) * subLevelB;
-        sampleB *= volB;
+        sampleB = processVoices(freqBSmoothed, morphBSmoothed, wavetableB,
+                                mainVoicesB, 0.f, args.sampleTime, voiceDriftB);
 
-        pmOffsetA = sampleB * pmAmount * pmScale;
 
-        sampleA = mainOscA.process(freqASmoothed, args.sampleTime, wavetableA, morphASmoothed, pmOffsetA);
-        if (subLevelA > 0.f)
-            sampleA += subOscA.process(freqSubA, args.sampleTime, wavetableA, 0.f, 0.f) * subLevelA;
-        sampleA *= volA;
+        pmOffsetA = sampleB * pmAmount * pmScale ;
+        sampleA = processVoices(freqASmoothed, morphASmoothed, wavetableA,
+                                mainVoicesA, pmOffsetA, args.sampleTime, voiceDriftA);
     }
     else
     {
-        // A  ↔  B
-        pmOffsetA = lastSampleA * pmAmount * pmScale * 0.35f;
-        pmOffsetB = lastSampleB * pmAmount * pmScale * 0.35f;
+        pmOffsetA = lastSampleB * pmAmount * pmScale ;
+        pmOffsetB = lastSampleA * pmAmount * pmScale ;
 
-        sampleA = mainOscA.process(freqASmoothed, args.sampleTime, wavetableA, morphASmoothed, pmOffsetA);
-        if (subLevelA > 0.f)
-            sampleA += subOscA.process(freqSubA, args.sampleTime, wavetableA, 0.f, 0.f) * subLevelA;
-        sampleA *= volA;
+        sampleA = processVoices(freqASmoothed, morphASmoothed, wavetableA,
+                                mainVoicesA, pmOffsetA, args.sampleTime, voiceDriftA);
 
         float phaseB = syncAktive ? (syncPhaseSmoothed + pmOffsetB) : pmOffsetB;
-        sampleB = mainOscB.process(freqBSmoothed, args.sampleTime, wavetableB, morphBSmoothed, phaseB);
-        if (subLevelB > 0.f)
-            sampleB += subOscB.process(freqSubB, args.sampleTime, wavetableB, 0.f, 0.f) * subLevelB;
-        sampleB *= volB;
+        sampleB = processVoices(freqBSmoothed, morphBSmoothed, wavetableB,
+                                mainVoicesB, phaseB, args.sampleTime, voiceDriftB);
+
     }
+
+    //Sub OSC
+     float subLevelA = params[SUB_LEVEL_A_PARAM].getValue();
+     float subLevelB = params[SUB_LEVEL_B_PARAM].getValue();
+     float freqSubA = freqASmoothed / 2;
+     float freqSubB = freqBSmoothed / 2;
+
+    if (subLevelA > 0.f)
+    {
+        sampleA += subOscA.processRechteck(freqSubA, args.sampleTime) * subLevelA;
+    }
+    if (subLevelB > 0.f)
+    {
+        sampleB += subOscB.processRechteck(freqSubB, args.sampleTime) * subLevelB;
+    }
+
     // ===== Filter =====
-    float cutoffHz = std::exp(params[CUTOFF_A_B_PARAM].getValue());
+    float totalCutoffVoltage = params[CUTOFF_A_B_PARAM].getValue();
+    float cutoffHz = std::exp(totalCutoffVoltage);
+
+    if (inputs[CUTOFF_CV_INPUT].isConnected())
+    {
+        float cv = inputs[CUTOFF_CV_INPUT].getVoltage();
+        cutoffHz *= std::pow(2.f, cv);
+    }
+
     float resParam = params[RES_A_B_PARAM].getValue();
+
     filterA.setCutoff(cutoffHz);
     filterA.setResonanz(resParam);
     filterB.setCutoff(cutoffHz);
@@ -303,17 +362,22 @@ void Nebula::process(const ProcessArgs& args)
     float rateKnobB = params[CHORUS_RATE_B_PARAM].getValue();
     float depthKnobB = params[CHORUS_DEPTH_B_PARAM].getValue();
 
-    // Map rate: 0.1 Hz to 2.0 Hz
-    chorusA.setRate(0.1f + rateKnobA * 1.9f);
+
+    chorusA.setRate( rateKnobA);
     chorusA.setDepth(depthKnobA);
     chorusA.setMix(params[CHORUS_MIX_PARAM_A].getValue());
 
-    chorusB.setRate(0.1f + rateKnobB * 1.9f);
+    chorusB.setRate( rateKnobB);
     chorusB.setDepth(depthKnobB);
     chorusB.setMix(params[CHORUS_MIX_PARAM_B].getValue());
 
     auto chorusOutA = chorusA.process(phaserOutA);
     auto chorusOutB = chorusB.process(phaserOutB);
+
+    chorusOutA.l *= volA ;
+    chorusOutA.r *= volA ;
+    chorusOutB.l *= volB ;
+    chorusOutB.r *= volB ;
 
     // ===== STEREO MIXING =====
 
@@ -328,7 +392,7 @@ void Nebula::process(const ProcessArgs& args)
     float finalLeft = leftDirect + leftCross;
     float finalRight = rightDirect + rightCross;
 
-    float outputGain = 4.0f;
+    float outputGain = 5.0f;
 
     auto softClip = [](float x)
     {

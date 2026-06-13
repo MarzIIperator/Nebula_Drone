@@ -48,6 +48,7 @@ struct Nebula : rack::Module
         PHASER_MIX_PARAM_B,
         CHORUS_MIX_PARAM_B,
 
+        VOICES_A_B_PARAM,
         SYNC_A_B_PARAM,
 
         CROSS_SPILL_PARAM,
@@ -60,10 +61,6 @@ struct Nebula : rack::Module
         MORPH_A_CV_INPUT,
         MORPH_B_CV_INPUT,
         CUTOFF_CV_INPUT,
-        PM_AMOUNT_CV_INPUT,
-        CHORUS_MIX_CV_INPUT,
-        PHASER_MIX_CV_INPUT,
-        MOD_CV_INPUT,
         PITCH_A_CV_INPUT,
         PITCH_B_CV_INPUT,
         VOLUME_A_CV_INPUT,
@@ -78,7 +75,13 @@ struct Nebula : rack::Module
     enum LightId { ADDITIVE_A_LIGHT, WAV_A_LIGHT, ADDITIVE_B_LIGHT, WAV_B_LIGHT, LIGHTS_LEN };
 
     Wavetable wavetableA, wavetableB;
-    WavetableOsc mainOscA, subOscA, mainOscB, subOscB;
+    WavetableOsc  subOscA,  subOscB;
+    static constexpr int MAIN_VOICES = 3;
+    std::array<WavetableOsc, MAIN_VOICES> mainVoicesA, mainVoicesB;
+
+    float voiceDriftA[MAIN_VOICES] = {};
+    float voiceDriftB[MAIN_VOICES] = {};
+
 
     LadderFilter filterA, filterB;
     Phaser phaserA, phaserB;
@@ -95,6 +98,7 @@ struct Nebula : rack::Module
     Nebula();
     void onSampleRateChange() override;
     void process(const ProcessArgs& args) override;
+    float processVoices(float freq, float morph, Wavetable& wt, std::array<WavetableOsc, 3>& voices, float pmOffset, float sampleTime, float* drift);
 };
 
 struct NebulaWidget : rack::ModuleWidget

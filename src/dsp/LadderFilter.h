@@ -9,7 +9,6 @@
 
 class LadderFilter {
 
-
 public:
 
     void setSampleRate(float sr) {
@@ -43,10 +42,10 @@ public:
     {
 
         float yd_averaged = 0.5f * (Yd_1 + Yd_2);
-        float feedback    = 4.0f * resonanz * yd_averaged;
+        float feedback   = 4.f * resonanz  * yd_averaged;
 
         // ===== Vorberechnungen =====
-        float tanh_in     = tanh((input - feedback) / vt2);
+        float tanh_in = tanh((input - feedback) / vt2);
         float tanh_yd_old = tanh(Yd / vt2);
 
         // ===== 4 Stages mit Caches =====
@@ -66,7 +65,7 @@ public:
         Wb = Wb_new;
         Wc = Wc_new;
 
-        // Half-Sample-Delay: erst Yd_2 vom alten Yd_1 updaten, DANN Yd_1 vom aktuellen Yd
+        // Half-Sample-Delay
         Yd_2 = Yd_1;
         Yd_1 = Yd;
 

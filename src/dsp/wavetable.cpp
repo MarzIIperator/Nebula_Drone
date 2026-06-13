@@ -157,7 +157,6 @@ void Wavetable::generate2()
                 }
                 else
                 {
-                    float t = smooth((morphPos - 0.75f) / 0.25f);
                     weight = organW;
                 }
 
@@ -186,15 +185,15 @@ float Wavetable::getSample(float phase, float morph) const
     int idx = static_cast<int>(tablePos);
     float frac = tablePos - idx;
 
-    float a0 = activeFrames[frameA][idx];
-    float a1 = activeFrames[frameA][idx + 1];
-    float b0 = activeFrames[frameB][idx];
-    float b1 = activeFrames[frameB][idx + 1];
+    float currentFrameLeft = activeFrames[frameA][idx];
+    float currentFrameRight = activeFrames[frameA][idx + 1];
+    float nextFrameLeft = activeFrames[frameB][idx];
+    float nextFrameRight = activeFrames[frameB][idx + 1];
 
-    float sampleA = a0 + (a1 - a0) * frac;
-    float sampleB = b0 + (b1 - b0) * frac;
+    float currentFrameSample = currentFrameLeft + (currentFrameRight - currentFrameLeft) * frac;
+    float nextFrameSample = nextFrameLeft + (nextFrameRight - nextFrameLeft) * frac;
 
-    return sampleA + (sampleB - sampleA) * frameFrac;
+    return currentFrameSample + (nextFrameSample - currentFrameSample) * frameFrac;
 }
 
 void Wavetable::normalizeAndWrap()
