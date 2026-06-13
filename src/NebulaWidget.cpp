@@ -82,11 +82,9 @@ NebulaWidget::NebulaWidget(Nebula* module)
 
     // ----- SUB A -----
     addLabel(this, 22, Y_SUB + LBL_OFF, "SUB");
-    addLabel(this, 15, Y_SUB + LBL_SUB_OFF, "-1", 7.5f);
-    addLabel(this, 28, Y_SUB + LBL_SUB_OFF, "LVL", 7.5f);
+    addLabel(this, 22, Y_SUB + LBL_SUB_OFF, "LVL", 7.5f);
 
-    addParam(createParamCentered<CKSS>(mm2px(Vec(15, Y_SUB)), module, Nebula::SUB_OCTAVE_A_PARAM));
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(28, Y_SUB)), module, Nebula::SUB_LEVEL_A_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(22, Y_SUB)), module, Nebula::SUB_LEVEL_A_PARAM));
 
     // ----- PHASER A -----
     addLabel(this, 22, Y_PHASER + LBL_OFF, "PHASER");
@@ -127,17 +125,18 @@ NebulaWidget::NebulaWidget(Nebula* module)
 
     const float Y_MID_FILTER = 20.f;
     const float Y_MID_PM = 40.f;
-    const float Y_MID_PAN = 60.f;
-    const float SYNC_A_B_Y = 55.f;
+    const float Y_MID_PAN = 55.f;
     const float Y_MID_MIX = 82.f;
+    const float Y_MID_VOICES = 110.f;
 
 
     // ===== FILTER =====
     addLabel(this, 63.5, Y_MID_FILTER + LBL_OFF, "FILTER", 10.f);
+    addLabel(this, 51, Y_MID_FILTER + LBL_SUB_OFF, "CV", 7.5f);
     addLabel(this, 77, Y_MID_FILTER + LBL_SUB_OFF, "RES", 7.5f);
 
-    addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(63.5, Y_MID_FILTER)), module,
-                                                      Nebula::CUTOFF_A_B_PARAM));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(51, Y_MID_FILTER)), module, Nebula::CUTOFF_CV_INPUT));
+    addParam(createParamCentered<RoundLargeBlackKnob>(mm2px(Vec(63.5, Y_MID_FILTER)), module, Nebula::CUTOFF_A_B_PARAM));
     addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(77, Y_MID_FILTER)), module, Nebula::RES_A_B_PARAM));
 
     // ===== PHASE MOD =====
@@ -149,10 +148,6 @@ NebulaWidget::NebulaWidget(Nebula* module)
     addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(54, Y_MID_PM)), module, Nebula::PM_AMOUNT_PARAM));
     addParam(createParamCentered<CKSSThree>(mm2px(Vec(63.5, Y_MID_PM)), module, Nebula::PM_DIRECTION_PARAM));
     addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(73, Y_MID_PM)), module, Nebula::PM_SCALE_PARAM));
-
-    // Sync A und B
-    addLabel(this, 63.5, Y_MID_PAN - 6.f, "SYNC", 8.5f);
-    addParam(createParamCentered<CKSS>(mm2px(Vec(63.5, SYNC_A_B_Y)), module, Nebula::SYNC_A_B_PARAM));
 
     // ===== CROSS PAN =====
     addLabel(this, 63.5, Y_MID_PAN + LBL_OFF, "CROSS PAN", 8.5f);
@@ -180,6 +175,11 @@ NebulaWidget::NebulaWidget(Nebula* module)
                                                          Nebula::PHASER_MIX_PARAM_B));
     addParam(createParamCentered<LightSlider<VCVSlider>>(mm2px(Vec(76, Y_MID_MIX + 12.f)), module,
                                                          Nebula::CHORUS_MIX_PARAM_B));
+
+    // ===== VOICES (Mitte, unter Mix) =====
+    addLabel(this, 63.5, Y_MID_VOICES + 4, "VOICES", 8.5f);
+    addLabel(this, 63.5, Y_MID_VOICES + 1, " 3 / 1", 7.f);
+    addParam(createParamCentered<CKSS>(mm2px(Vec(63.5, Y_MID_VOICES + 8)), module, Nebula::VOICES_A_B_PARAM));
 
     // =====================================================================
     // ============== BANK B (Rechts, X-Zentrum: 105) ==============
@@ -210,11 +210,9 @@ NebulaWidget::NebulaWidget(Nebula* module)
 
     // ----- SUB B -----
     addLabel(this, 105, Y_SUB + LBL_OFF, "SUB");
-    addLabel(this, 99, Y_SUB + LBL_SUB_OFF, "LVL", 7.5f);
-    addLabel(this, 112, Y_SUB + LBL_SUB_OFF, "-1", 7.5f);
+    addLabel(this, 105, Y_SUB + LBL_SUB_OFF, "LVL", 7.5f);
 
-    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(99, Y_SUB)), module, Nebula::SUB_LEVEL_B_PARAM));
-    addParam(createParamCentered<CKSS>(mm2px(Vec(112, Y_SUB)), module, Nebula::SUB_OCTAVE_B_PARAM));
+    addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(105, Y_SUB)), module, Nebula::SUB_LEVEL_B_PARAM));
 
     // ----- PHASER B -----
     addLabel(this, 105, Y_PHASER + LBL_OFF, "PHASER");

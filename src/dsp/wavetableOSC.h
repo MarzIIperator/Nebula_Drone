@@ -27,6 +27,11 @@ struct WavetableOsc {
 
         return wavetable.getSample(lookupPhase, morph);
     }
+    float processRechteck(float freq, float sampleTime)
+    {
+        advance(freq, sampleTime);
+        return (phase < 0.5f) ? 1.f : -1.f;
+    }
 };
 
 #endif
