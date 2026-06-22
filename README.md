@@ -1,120 +1,122 @@
-# Nebula — Drone/Texture Synthesizer
+# Nebula — Drone-Synthesizer
 
-**VCV Rack 2 Plugin Module**
+**VCV Rack 2 Plugin-Modul**  
 *Emiel Kästner — Sommersemester 2026*
 
 ---
 
-## Projektbeschreibung
+## Übersicht
 
-Nebula ist ein Drone/Texture-Synthesizer-Modul für die Open-Source Modular-Synthesizer-Plattform VCV Rack 2. Das Modul erzeugt dichte, sich langsam entwickelnde Klangtexturen durch die Kombination von Wavetable-Synthese, Phasenmodulation und subtraktiver Filterung.
+Nebula ist ein zweibank Wavetable-Drone/Texture-Synthesizer für VCV Rack 2.
+Das Modul erzeugt dichte, sich langsam entwickelnde Klangflächen durch
+Wavetable-Synthese, Phasenmodulation, einen analog modellierten Ladder-Filter,
+Phaser und Ensemble-Chorus.
 
-## 1. Designphilosophie
+Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt sich
+über interne Drift, CV-Modulation und Cross-Bank-Interaktion kontinuierlich weiter.
 
-- **Drone-fokussiert:** Keine ADSR-Hüllkurven, keine Note-On/Off-Logik. Der Klang läuft dauerhaft und entwickelt sich langsam über die Zeit.
-- **2-Bank-Architektur:** Zwei unabhängige Klangbänke (je 1 Haupt-VCO + 1 Sub-VCO) die sich gegenseitig per Phasenmodulation beeinflussen.
-- **Wavetable-basiert:** Jede Bank hat ihre eigene Wavetable mit 32 vorberechneten Frames. Morph-Knobs scannen stufenlos durch die Frames.
+### Kernfunktionen
 
-
----
-
-## 2. Architektur
-
-### 2.1 Signalfluss (Übersicht)
-
-```
-
-```
-
-### 2.2 Pro Bank (×2)
-
-Jede Bank besteht aus:
-
-| Komponente | Beschreibung |
-|---|---|
-| **Haupt-VCO** | Wavetable-Oszillator, liest aus eigener Wavetable |
-| **Sub-VCO** | Identisch zum Haupt-VCO, läuft fest 1 oder 2 Oktaven tiefer, liest denselben Frame |
-| **Wavetable** | 32 Frames, vorberechnet, evtl ein Preset an Wavetables pro Bank. Mit einem Random knopf veränderbar |
-| **Morph-Knob** | Scannt stufenlos durch die 32 Frames der Bank-eigenen Wavetable |
-| **LFO** | Rate, Depth, Shape (Sine/Tri/Random) |
-
-#### Parameter pro Bank
-
-- **Pitch** — Grundtonhöhe (gerastert in Halbtönen/Oktaven)
-- **Fine** — Mikroverstimmung ±50  (Detune zwischen Haupt und Sub)
-- **Volume** — Lautstärke der Bank
-- **Pan** — Stereoposition (L/R)
-- **Sub Level** — Lautstärke des Sub-VCO relativ zum Haupt-VCO
-- **Sub Octave** — Switch: -1 oder -2 Oktaven unter dem Haupt-VCO
-- **Morph** — Position in der Wavetable 
-- **LFO Rate** — Geschwindigkeit des LFO (0.01 – 10 Hz)
-- **LFO Depth** — Modulationstiefe
-- **LFO Shape** — Wellenform: Sine, Triangle, Random (Smooth Random)
-
-### 2.3 Phasenmodulation (PM) — zwischen den Bänken
-
-Die Phasenmodulation ist das zentrale klangformende Feature von Nebula. Der gemischte Output von Bank A moduliert die Phase der Oszillatoren in Bank B oder umgekehrt (Wechselbar durch einen Switch).
-
-
-**Parameter:**
-- **PM Amount** — Wie stark Bank A/B die Phase von Bank B/A beeinflusst (0 = kein Effekt, voll = chaotisch)
-- **PM Direction** — Switch mit 3 Positionen:
-  - A → B (Bank A moduliert Bank B, Standard)
-  - B → A (Bank B moduliert Bank A)
-  - A ↔ B (gegenseitig, Feedback-Schleife, chaotischste Ergebnisse)
-
-### 2.4 Globale Effekte
-
-#### Filter
-- **Typ:** Biquad-Filter (12 dB/Oktave) / Moog Ladder Filter (24 dB) ?
-- **Cutoff** — 
-- **Resonance** — 
-- **LP/HP Switch** — Tiefpass oder Hochpass
-
-#### Reverb
-- **Algorithmus:** 
-- **Size** — "Raumgröße"
-- **Mix** — Dry/Wet-Verhältnis
-
-#### Drift
-- **Funktion:** Zufällige, langsame Frequenzschwankungen auf alle VCOs
-- **Umsetzung:** Unabhängiger Smooth-Random-LFO pro VCO (0.01–0.1 Hz) oder für alle VCO´s 
-- **Amount** — Intensität der Schwankung 
-
-#### Master
-- **Volume** — Gesamtlautstärke vor dem Ausgang
-
-### 2.6 CV-Eingänge
-
-| CV Input | Ziel | Beschreibung |
-|---|---|---|
-| **Morph A** | Bank A Morph | Wavetable-Position von außen steuern |
-| **Morph B** | Bank B Morph | Wavetable-Position von außen steuern |
-| **PM Amount** | PM Intensität | Phasenmodulation von außen modulieren |
-| **Cutoff** | Filter Cutoff | Filter-Sweeps per externem LFO |
-| **Drift** | Drift Amount | Instabilität von außen steuerbar |
-
-Alle CV-Inputs: ±5V Bereich. Knob-Wert + CV-Wert = finaler Parameter.
-
-### 2.7 Outputs
-
-- **Out L** — Linker Stereokanal
-- **Out R** — Rechter Stereokanal
+- **Zwei unabhängige Klangbänke** (A + B), je mit 3 verstimmten Unisono-Stimmen + Sub-Oszillator
+- **Wavetable-Synthese**: 256 morphbare Frames pro Bank, eingebaute Presets + ladbare WAV-Dateien
+- **Phasenmodulation**: Bank A moduliert Bank B (oder umgekehrt, oder gekreuzt)
+- **Moog-Ladder-Filter**: 4-stufiges nichtlineares tanh-Modell nach Huovilainen (2004), gemeinsamer Cutoff + Resonanz
+- **Phaser**: 6-stufige Allpass-Kaskade mit internem/externem LFO und nichtlinearem Feedback
+- **Ensemble-Chorus**: 6 Delay-Stimmen mit Dreieck-LFO, Constant-Power-Stereo-Panning
+- **13 CV-Eingänge** für externe Modulation (Pitch, Morph, Volume, Cutoff, Phaser-LFO)
 
 ---
 
-## 3. Panel-Layout (Konzept)
+## Architektur
 
-```
+### Pro Bank
 
-```
+| Komponente | Details |
+|-----------|---------|
+| **Wavetable** | 256 Frames × 2048 Samples, `generate1()` (5 Wellenformen) oder `generate2()` (12 Harmonische additiv) |
+| **Unisono** | 3 Stimmen mit asymmetrischer Detune (−15 / 0 / +15 ct), pro Stimme eigene Lautstärke, zufällige Startphasen |
+| **Sub-OSC** | Rechteckwelle, fest eine Oktave unter dem Haupt-Pitch |
+| **Morph** | Weicher Übergang über alle 256 Frames, CV-steuerbar |
+| **Voice Drift** | Random Walk ±5 ct pro Stimme (simuliert analoge Instabilität) |
+
+### Global / Gemeinsam
+
+| Komponente | Details |
+|-----------|---------|
+| **Ladder Filter** | 
+| **Cutoff** | 
+| **Resonanz** | 
+| **Cross-Spill** |
+
+### Effekte (pro Bank)
+
+| Effekt | Implementierung |
+|--------|---------------|
+| **Phaser A / B** |
+| **Chorus A / B** | 
 
 ---
 
-## 4. Build
+## Build-Anleitung
+
+### Voraussetzungen
+
+- [VCV Rack 2 SDK](https://github.com/VCVRack/Rack) (nach z.B. `~/Desktop/Rack-SDK` klonen)
+- C++17-Compiler (Apple Clang auf macOS, GCC auf Linux, MSVC auf Windows)
+- CMake ≥ 3.20
+
+### Build mit Make
 
 ```bash
 export RACK_DIR=/path/to/Rack-SDK
 make install
 ```
 
+Das kompilierte Plugin (`.dylib` / `.so` / `.dll`) wird im Rack-Plugin-Ordner abgelegt.
+
+### Build mit CMake
+
+```bash
+mkdir build && cd build
+cmake .. -DRACK_SDK_DIR=/path/to/Rack-SDK
+make -j$(nproc)
+```
+
+### Installieren & Ausführen
+
+1. Die kompilierte `Nebula.dylib` (bzw. `.so`/`.dll`) in den VCV Rack `plugins-v2`-Ordner kopieren
+2. VCV Rack 2 starten
+3. Rechtsklick im Modul-Browser → „Nebula" suchen
+4. Modul zum Patch hinzufügen
+
+
+## Projektstruktur
+
+```
+Nebula/
+├── CMakeLists.txt          # CMake-Build-Konfiguration
+├── Makefile                # GNU-Make-Build
+├── plugin.json             # VCV Rack Plugin-Metadaten
+├── README.md               # Diese Datei
+├── res/
+│   └── Nebula.svg          # Panel-Grafik
+├── src/
+│   ├── plugin.cpp          # Plugin-Einstiegspunkt
+│   ├── plugin.hpp
+│   ├── Nebula.h            # Modul-Deklaration (Parameter, Eingänge, Ausgänge)
+│   ├── Nebula.cpp          # DSP-Engine: process(), processVoices()
+│   ├── NebulaWidget.cpp    # Panel-Layout und Widget-Erstellung
+│   └── dsp/
+│       ├── wavetable.h     # Wavetable-Datenstruktur (256 Frames × 2048)
+│       ├── wavetable.cpp   # Wellenform-Generierung (generate1/2), Normalisierung, WAV-Lader
+│       ├── wavetableOSC.h  # Wavetable-Oszillator (Phasor + Lookup)
+│       ├── LadderFilter.h  # 4-stufiger nichtlinearer Moog-Ladder-Filter
+│       ├── Phaser.h        # 6-stufiger Allpass-Phaser mit LFO
+│       ├── Chorus.h        # 6-stimmiger Ensemble-Chorus mit Stereo-Panning
+│       └── Utils/
+│           └── AudioFile.h # WAV-Datei-Ladefunktion (externe Bibliothek)
+```
+
+## Lizenz
+
+MIT 
