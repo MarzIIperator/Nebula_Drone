@@ -89,13 +89,25 @@ void Nebula::onSampleRateChange()
     chorusB.setSampleRate(APP->engine->getSampleRate());
 }
 
+// ---------------------------------------------------------------------------
+// processVoices() — Mehrstimmiges Unisono + Detune + Drift
+//
+// Rendert eine Bank (A oder B) über bis zu 3 verstimmte Wavetable-Oszillatoren.
+//
+// Stimmen-Aufteilung (asymmetrisch, simuliert analoge Oszillator-Ungenauigkeiten):
+//   Voice 0:  −15 ct Detune, 0,65× Gain, 0,00 Phasen-Offset, −0,12 Morph-Delta
+//   Voice 1:    0 ct Detune, 0,50× Gain, 0,33 Phasen-Offset,  0,00 Morph-Delta
+//   Voice 2:  +15 ct Detune, 0,65× Gain, 0,66 Phasen-Offset, +0,15 Morph-Delta
+// ---------------------------------------------------------------------------
 float Nebula::processVoices(float freq, float morph, Wavetable& wt, std::array<WavetableOsc, 3>& voices, float pmOffset, float sampleTime, float* drift)
 {
+    // CKSS-Schalter: Position 0 → 3 Stimmen (Unisono), Position 1 → 1 Stimme
     int voiceCount = (params[VOICES_A_B_PARAM].getValue() < 0.5f) ? 3 : 1;
 
     if (voiceCount == 1)
         return voices[0].process(freq, sampleTime, wt, morph, pmOffset);
 
+    // Pro-Stimme Voreinstellungen: Detune (Cent), Gain, Phasen-Offset, Morph-Delta.
     const float detCents[3] = { -15.f, 0.f, +15.f };
     const float gain[3]     = { 0.65f, 0.5f, 0.65f };
     const float phOff[3]    = { 0.00f, 0.33f, 0.66f };
@@ -103,18 +115,34 @@ float Nebula::processVoices(float freq, float morph, Wavetable& wt, std::array<W
 
     float sample = 0.f;
     for (int v = 0; v < voiceCount; v++) {
+        // Static detune + drift (random walk, ±5 ct).
         float totalDetune = detCents[v] + drift[v];
+        // Cent → frequency:  f × 2^(cents/1200)
         float freqV   = freq * std::pow(2.f, totalDetune / 1200.f);
+
+        // Timbre variation: each voice reads a slightly different wavetable frame.
         float morphV  = rack::clamp(morph + mDelta[v], 0.f, 1.f);
+
+        // Phase offset: fixed per-voice + global PM offset from cross-modulation.
         float phaseOff = phOff[v] + pmOffset;
 
         sample += voices[v].process(freqV, sampleTime, wt, morphV, phaseOff) * gain[v];
     }
+
+    // RMS normalisation: sum of squared gains = 0.65² + 0.5² + 0.65² = 1.095
+    //   √1.095 ≈ 1.046.  We use √1.8 as an empirical loudness match to single-voice mode.
     return sample / std::sqrt(1.8f);
 }
 
 void Nebula::process(const ProcessArgs& args)
 {
+    // ======================================================================
+    // Signalfluss pro Sample:
+    //   Parameter lesen → Bank A + B (Pitch, Morph, Voices, Sub)
+    //   → PM Routing (A↔B) → Ladder Filter → Phaser A/B → Chorus A/B
+    //   → Volume A/B (nach Effekten!) → Stereo-Mix → Output L/R
+    // ======================================================================
+
     int pmDirection = (int)params[PM_DIRECTION_PARAM].getValue();
     float pmAmount = params[PM_AMOUNT_PARAM].getValue();
     float pmOffsetA = 0.f, pmOffsetB = 0.f;
@@ -238,6 +266,10 @@ void Nebula::process(const ProcessArgs& args)
 
 
 
+    // Voice Drift: zufällige, langsame Frequenz-Wanderung pro Stimme.
+    // Simuliert analoge Oszillator-Instabilität (Temperaturdrift, Bauteil-Toleranzen).
+    // Jede Stimme akkumuliert winzige Zufallswerte (±0,002 ct/Sample) und wird
+    // auf ±5 ct begrenzt. Bricht periodische Schwebungen zwischen den Stimmen auf.
     for (int v = 0; v < MAIN_VOICES; v++)
     {
         float noise = (rack::random::uniform() ) * 0.002f;
@@ -301,6 +333,7 @@ void Nebula::process(const ProcessArgs& args)
     }
 
     // ===== Filter =====
+    // Cutoff: exp(knob) × pow(2, cv)  →  1V/Oct Eurorack-Standard
     float totalCutoffVoltage = params[CUTOFF_A_B_PARAM].getValue();
     float cutoffHz = std::exp(totalCutoffVoltage);
 
@@ -374,13 +407,16 @@ void Nebula::process(const ProcessArgs& args)
     auto chorusOutA = chorusA.process(phaserOutA);
     auto chorusOutB = chorusB.process(phaserOutB);
 
+    // ===== Volume  =====
     chorusOutA.l *= volA ;
     chorusOutA.r *= volA ;
     chorusOutB.l *= volB ;
     chorusOutB.r *= volB ;
 
-    // ===== STEREO MIXING =====
-
+    // ===== Stereo Mix =====
+    // Cross-Spill: kein Pan, sondern Cross-Fader zwischen den Bänken.
+    // 0 = Bank A → L, Bank B → R (getrennt).  1 = beide auf beide Kanäle (50/50).
+    // tanh() Soft-Clip begrenzt auf ±1.0, ×5.0 → VCV Audio-Standard (±5V).
     float crossSpill = params[CROSS_SPILL_PARAM].getValue();
 
     float leftDirect = chorusOutA.l * (1.f - crossSpill * 0.5f);

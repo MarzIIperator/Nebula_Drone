@@ -37,7 +37,6 @@
 #ifndef _AS_AudioFile_h
 #define _AS_AudioFile_h
 
-#include <iostream>
 #include <vector>
 #include <string>
 #include <cstring>
