@@ -34,8 +34,8 @@ Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt s
 
 ### Pro Bank
 
-| Komponente | Details |
-|-----------|---------|
+| Komponente | 
+|-----------|
 | **Wavetable** | 256 Frames × 2048 Samples, `generate1()` (5 Wellenformen) oder `generate2()` (12 Harmonische additiv) |
 | **Unisono** | 3 Stimmen mit asymmetrischer Detune (−15 / 0 / +15 ct), pro Stimme eigene Lautstärke, zufällige Startphasen |
 | **Sub-OSC** | Rechteckwelle, fest eine Oktave unter dem Haupt-Pitch |
@@ -44,8 +44,8 @@ Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt s
 
 ### Global / Gemeinsam
 
-| Komponente | Details |
-|-----------|---------|
+| Komponente | 
+|-----------|
 | **Ladder Filter** | 
 | **Cutoff** | 
 | **Resonanz** | 
@@ -53,8 +53,8 @@ Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt s
 
 ### Effekte (pro Bank)
 
-| Effekt | Implementierung |
-|--------|---------------|
+| Effekt | 
+|--------|
 | **Phaser A / B** |
 | **Chorus A / B** | 
 
