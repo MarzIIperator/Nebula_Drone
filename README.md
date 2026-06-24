@@ -15,6 +15,9 @@ Phaser und Ensemble-Chorus.
 Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt sich
 über interne Drift, CV-Modulation und Cross-Bank-Interaktion kontinuierlich weiter.
 
+<img width="738" height="750" alt="Screenshot 2026-06-24 at 18 36 06" src="https://github.com/user-attachments/assets/22963e76-8fa7-4092-b2d9-26261ea8dbdc" />
+
+
 ### Kernfunktionen
 
 - **Zwei unabhängige Klangbänke** (A + B), je mit 3 verstimmten Unisono-Stimmen + Sub-Oszillator
