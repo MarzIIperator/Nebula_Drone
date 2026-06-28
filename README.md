@@ -26,7 +26,7 @@ Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt s
 - **Moog-Ladder-Filter**: 4-stufiges nichtlineares tanh-Modell nach Huovilainen (2004), gemeinsamer Cutoff + Resonanz
 - **Phaser**: 6-stufige Allpass-Kaskade mit internem/externem LFO und nichtlinearem Feedback
 - **Ensemble-Chorus**: 6 Delay-Stimmen mit Dreieck-LFO, Constant-Power-Stereo-Panning
-- **13 CV-Eingänge** für externe Modulation (Pitch, Morph, Volume, Cutoff, Phaser-LFO)
+- **11 CV-Eingänge** für externe Modulation (Pitch, Morph, Volume, Cutoff, Phaser-LFO)
 
 ---
 
@@ -66,7 +66,7 @@ Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt s
 
 - [VCV Rack 2 SDK](https://github.com/VCVRack/Rack) (nach z.B. `~/Desktop/Rack-SDK` klonen)
 - C++17-Compiler (Apple Clang auf macOS, GCC auf Linux, MSVC auf Windows)
-- CMake ≥ 3.20
+- CMake 
 
 ### Build mit Make
 
@@ -77,13 +77,6 @@ make install
 
 Das kompilierte Plugin (`.dylib` / `.so` / `.dll`) wird im Rack-Plugin-Ordner abgelegt.
 
-### Build mit CMake
-
-```bash
-mkdir build && cd build
-cmake .. -DRACK_SDK_DIR=/path/to/Rack-SDK
-make -j$(nproc)
-```
 
 ### Installieren & Ausführen
 
