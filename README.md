@@ -7,7 +7,7 @@
 
 ## Übersicht
 
-Nebula ist ein zweibank Wavetable-Drone/Texture-Synthesizer für VCV Rack 2.
+Nebula ist ein zweibankiger Wavetable-Drone/Texture-Synthesizer für VCV Rack 2.
 Das Modul erzeugt dichte, sich langsam entwickelnde Klangflächen durch
 Wavetable-Synthese, Phasenmodulation, einen analog modellierten Ladder-Filter,
 Phaser und Ensemble-Chorus.
@@ -40,23 +40,22 @@ Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt s
 | **Unisono** | 3 Stimmen mit asymmetrischer Detune (−15 / 0 / +15 ct), pro Stimme eigene Lautstärke, zufällige Startphasen |
 | **Sub-OSC** | Rechteckwelle, fest eine Oktave unter dem Haupt-Pitch |
 | **Morph** | Weicher Übergang über alle 256 Frames, CV-steuerbar |
-| **Voice Drift** | Random Walk ±5 ct pro Stimme (simuliert analoge Instabilität) |
 
 ### Global / Gemeinsam
 
-| Komponente | 
+| Komponente |
 |-----------|
 | **Ladder Filter** | 
 | **Cutoff** | 
 | **Resonanz** | 
-| **Cross-Spill** |
+| **Cross-Spill** | 
 
 ### Effekte (pro Bank)
 
-| Effekt | 
-|--------|
-| **Phaser A / B** |
-| **Chorus A / B** | 
+| Effekt | Implementierung |
+|--------|----------------|
+| **Phaser A / B** | 6 × Allpass 1. Ordnung, Bilinear-Transformation, exponentieller LFO-Sweep (10–4000 Hz), tanh-Feedback |
+| **Chorus A / B** | 6 Delay-Stimmen (18–52 ms), Dreieck-LFO, Constant-Power-Stereo-Panning, Ringpuffer (8192 Samples) |
 
 ---
 
@@ -64,27 +63,34 @@ Keine Hüllkurven, kein Keyboard — der Klang läuft dauerhaft und entwickelt s
 
 ### Voraussetzungen
 
-- [VCV Rack 2 SDK](https://github.com/VCVRack/Rack) (nach z.B. `~/Desktop/Rack-SDK` klonen)
-- C++17-Compiler (Apple Clang auf macOS, GCC auf Linux, MSVC auf Windows)
-- CMake 
+- **VCV Rack 2** (die Anwendung) — [vcvrack.com](https://vcvrack.com/)
+- **VCV Rack 2 SDK** Installieren:
+  ```
+  Unter dem Kapitel: **Building Rack plugins** 
+  die Rack-SDK herunterladen und entpacken. 
+  
+  https://vcvrack.com/manual/Building
+  
+  ```
 
-### Build mit Make
+
+### Build mit Make 
 
 ```bash
-export RACK_DIR=/path/to/Rack-SDK
+# Im Nebula-Projektverzeichnis:
+export RACK_DIR=/pfad/zum/Rack-SDK
 make install
 ```
 
-Das kompilierte Plugin (`.dylib` / `.so` / `.dll`) wird im Rack-Plugin-Ordner abgelegt.
+`make install` kompiliert das Plugin und kopiert es automatisch in den VCV-Rack-Plugin-Ordner.
 
+### Ausführen
 
-### Installieren & Ausführen
+1. VCV Rack 2 starten
+2. Rechtsklick im Modul-Browser → „Nebula" suchen
+3. Modul zum Patch hinzufügen
 
-1. Die kompilierte `Nebula.dylib` (bzw. `.so`/`.dll`) in den VCV Rack `plugins-v2`-Ordner kopieren
-2. VCV Rack 2 starten
-3. Rechtsklick im Modul-Browser → „Nebula" suchen
-4. Modul zum Patch hinzufügen
-
+---
 
 ## Projektstruktur
 
@@ -115,4 +121,4 @@ Nebula/
 
 ## Lizenz
 
-MIT 
+MIT
